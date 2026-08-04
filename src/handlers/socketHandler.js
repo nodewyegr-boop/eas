@@ -21,7 +21,7 @@ module.exports = function registerSocketEvents(socket, io) {
                     id: client.user.id,
                     username: client.user.username,
                     tag: client.user.tag,
-                    avatar: client.user.displayAvatarURL({ dynamic: true })
+                    avatar: client.user.displayAvatarURL()
                 }
             });
         });
@@ -38,7 +38,7 @@ module.exports = function registerSocketEvents(socket, io) {
 
             let msg = 'Bot Token ไม่ถูกต้อง';
             if (err.message.includes('USED_DISALLOWED_INTENTS')) {
-                msg = 'กรุณาเปิด Privileged Gateway Intents (Message Content) ใน Discord Developer Portal';
+                msg = 'กรุณาเปิด MESSAGE CONTENT INTENT ใน Discord Developer Portal';
             } else if (err.message.includes('TOKEN_INVALID')) {
                 msg = 'รูปแบบ Bot Token ไม่ถูกต้อง';
             }
@@ -55,7 +55,7 @@ module.exports = function registerSocketEvents(socket, io) {
             const guilds = client.guilds.cache.map(g => ({
                 id: g.id,
                 name: g.name,
-                icon: g.iconURL({ dynamic: true }) || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png'
+                icon: g.iconURL() || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png'
             }));
 
             socket.emit('res_initial_data', {
@@ -63,7 +63,7 @@ module.exports = function registerSocketEvents(socket, io) {
                     id: client.user.id,
                     username: client.user.username,
                     tag: client.user.tag,
-                    avatar: client.user.displayAvatarURL({ dynamic: true })
+                    avatar: client.user.displayAvatarURL()
                 },
                 guilds: guilds
             });

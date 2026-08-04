@@ -1,26 +1,33 @@
 const UI = {
-    switchTab(tab) {
-        console.log('Switching to tab:', tab);
-    },
-    switchDMView(view) {
-        console.log('DM View:', view);
-    },
-    openOfficialSystemDM() {
-        Chat.appendMessage({
-            author: { username: 'Discord System', bot: true },
-            content: '⚡ แจ้งเตือนระบบ: เข้าร่วม Discord เซิร์ฟเวอร์สนับสนุน https://discord.gg/5QCPEp5qf'
-        });
-    },
-    openUserSettings() {
-        SettingsModal.openUserSettings();
-    },
-    handleInputKey(e) {
-        if (e.key === 'Enter') {
-            const input = document.getElementById('chat-input');
-            if (input.value.trim() !== '') {
-                socket.emit('req_send_message', { content: input.value });
-                input.value = '';
-            }
+    handleLogin(e) {
+        e.preventDefault();
+        const tokenInput = document.getElementById('token-input');
+        const token = tokenInput.value.trim();
+
+        if (token) {
+            document.getElementById('login-btn').innerText = 'กำลังเข้าสู่ระบบ...';
+            localStorage.setItem('discord_token', token); // บันทึกลง Browser Storage
+            socket.emit('req_login', { token: token });
         }
+    },
+
+    showLoginScreen() {
+        document.getElementById('login-screen').style.display = 'flex';
+    },
+
+    hideLoginScreen() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('login-btn').innerText = 'เข้าสู่ระบบ';
+    },
+
+    showLoginError(msg) {
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.innerText = msg;
+        errorDiv.style.display = 'block';
+        document.getElementById('login-btn').innerText = 'เข้าสู่ระบบ';
+    },
+
+    logout() {
+        socket.emit('req_logout');
     }
 };

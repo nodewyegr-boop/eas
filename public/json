@@ -1,0 +1,42 @@
+{
+  "user": {
+    "id": "249827823901409280",
+    "username": "example_user",
+    "global_name": "Discord Developer",
+    "avatar": "a_1234567890abcdef",
+    "avatar_decoration_data": {
+      "asset": "v2_a_dec_12345"
+    },
+    "banner": "a_9876543210fedcba",
+    "accent_color": 5793266,
+    "public_flags": 131072
+  },
+  "user_profile": {
+    "bio": "Developer & Reverse Engineer\nDeveloping Discord Tools",
+    "accent_color": 5793266,
+    "banner": "a_9876543210fedcba",
+    "pronouns": "they/them"
+  },
+  "badges": [
+    { "id": "hypesquad_house_2", "description": "HypeSquad Brilliance", "icon": "8a88318e81c00df0068c2d4b5502287e" },
+    { "id": "active_developer", "description": "Active Developer", "icon": "6bdc42827e3843e208154205b2338d43" },
+    { "id": "premium", "description": "Subscriber since Mar 12, 2021", "icon": "2ba85e8026a8614b640c2837bcd216a3" }
+  ],
+  "connected_accounts": [
+    { "type": "github", "name": "octocat", "verified": true },
+    { "type": "spotify", "name": "Listen Along", "verified": true }
+  ],
+  "activities": [
+    {
+      "name": "Visual Studio Code",
+      "type": 0,
+      "details": "Editing server.js",
+      "state": "Workspace: Discord-Clone",
+      "timestamps": { "start": 1700000000000 },
+      "assets": {
+        "large_image": "vscode_logo",
+        "large_text": "Visual Studio Code"
+      }
+    }
+  ]
+}

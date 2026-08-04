@@ -1,19 +1,26 @@
 const socket = io();
 
+// ตรวจสอบ Token เมื่อเชื่อมต่อ Socket
 socket.on('connect', () => {
-    console.log('[Client Socket] Connected to bridge');
+    const savedToken = localStorage.getItem('discord_token');
+    if (savedToken) {
+        socket.emit('req_login', { token: savedToken });
+    } else {
+        UI.showLoginScreen();
+    }
+});
+
+socket.on('login_success', (data) => {
+    UI.hideLoginScreen();
     socket.emit('req_initial_data');
 });
 
-socket.on('res_initial_data', (data) => {
-    Sidebar.renderUserPanel(data.me);
-    Sidebar.renderGuilds(data.guilds);
+socket.on('login_error', (errorMsg) => {
+    UI.showLoginError(errorMsg);
+    localStorage.removeItem('discord_token'); // ลบ Token ที่เสียออก
 });
 
-socket.on('discord_message_create', (msg) => {
-    Chat.appendMessage(msg);
-});
-
-socket.on('discord_voice_update', (data) => {
-    Voice.handleVoiceUpdate(data);
+socket.on('logout_success', () => {
+    localStorage.removeItem('discord_token');
+    location.reload();
 });

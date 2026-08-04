@@ -1,212 +1,262 @@
 const socket = io();
 
+let currentUser = null;
 let currentGuildId = null;
 let currentChannelId = null;
-let selectedFile = null;
 
+// Element Selectors
 const loginOverlay = document.getElementById('login-overlay');
 const app = document.getElementById('app');
 const tokenInput = document.getElementById('token-input');
 const btnLogin = document.getElementById('btn-login');
 const loginStatus = document.getElementById('login-status');
 
-const guildsList = document.getElementById('guilds-list');
-const channelsList = document.getElementById('channels-list');
+const guildsContainer = document.getElementById('guilds-container');
+const sidebarHeaderTitle = document.getElementById('sidebar-header-title');
+const dmSearchBar = document.getElementById('dm-search-bar');
+const sidebarContent = document.getElementById('sidebar-content');
+
 const messagesContainer = document.getElementById('messages-container');
-const messageInput = document.getElementById('message-input');
-const chatHeaderTitle = document.getElementById('chat-header-title');
-const sidebarTitle = document.getElementById('sidebar-title');
+const chatInput = document.getElementById('chat-input');
+const chatIcon = document.getElementById('chat-icon');
+const chatTitle = document.getElementById('chat-title');
+const memberListContainer = document.getElementById('member-list-container');
 
-const fileInput = document.getElementById('file-input');
-const filePreview = document.getElementById('file-preview');
-
+// Login Event
 btnLogin.addEventListener('click', () => {
     const token = tokenInput.value.trim();
     if (token) {
-        loginStatus.innerText = 'Connecting...';
+        loginStatus.innerText = 'กำลังเชื่อมต่อ...';
         socket.emit('login', token);
     }
 });
 
 socket.on('login_success', ({ user, guilds }) => {
+    currentUser = user;
     loginOverlay.classList.add('hidden');
     app.classList.remove('hidden');
 
-    document.getElementById('bot-avatar').src = user.avatar;
-    document.getElementById('bot-display-name').innerText = user.globalName;
-    document.getElementById('bot-status-text').innerText = `@${user.username}`;
+    // อัปเดตข้อมูลผู้ใช้มุมซ้ายล่าง
+    document.getElementById('self-avatar').src = user.avatar;
+    document.getElementById('self-name').innerText = user.globalName;
+    document.getElementById('setting-username-input').value = `@${user.username}`;
 
     renderGuilds(guilds);
+    openDMTab(); // เริ่มต้นด้วยหน้า DM
 });
 
 socket.on('login_error', (err) => { loginStatus.innerText = err; });
 
-document.getElementById('btn-dm-tab').addEventListener('click', () => {
+// สลับไปหน้า DM
+document.getElementById('btn-dm-tab').addEventListener('click', openDMTab);
+
+function openDMTab() {
     currentGuildId = null;
-    sidebarTitle.innerText = 'Direct Messages';
-    document.querySelectorAll('.server-item').forEach(el => el.classList.remove('active'));
+    sidebarHeaderTitle.innerText = 'ข้อความส่วนตัว';
+    dmSearchBar.classList.remove('hidden');
+    document.getElementById('member-sidebar').classList.add('hidden');
+    document.querySelectorAll('.guild-icon').forEach(el => el.classList.remove('active'));
     document.getElementById('btn-dm-tab').classList.add('active');
     socket.emit('get_dms');
-});
+}
 
+// วาดรายการ เซิร์ฟเวอร์
 function renderGuilds(guilds) {
-    guildsList.innerHTML = '';
+    guildsContainer.innerHTML = '';
     guilds.forEach(g => {
         const div = document.createElement('div');
-        div.className = 'server-item';
-        
-        let iconContent = g.icon 
-            ? `<img src="${g.icon}" class="server-icon-wrapper">`
-            : `<div class="server-icon-wrapper">${g.acronym}</div>`;
-
-        div.innerHTML = `<div class="pill"></div>${iconContent}`;
+        div.className = 'guild-icon';
+        div.title = g.name;
+        div.innerHTML = g.icon ? `<img src="${g.icon}">` : g.acronym;
         
         div.onclick = () => {
-            document.querySelectorAll('.server-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('btn-dm-tab').classList.remove('active');
+            document.querySelectorAll('.guild-icon').forEach(el => el.classList.remove('active'));
             div.classList.add('active');
             currentGuildId = g.id;
+            dmSearchBar.classList.add('hidden');
+            document.getElementById('member-sidebar').classList.remove('hidden');
             socket.emit('get_channels', g.id);
+            socket.emit('get_guild_members', g.id);
         };
-        guildsList.appendChild(div);
+        guildsContainer.appendChild(div);
     });
 }
 
+// วาดรายการ Channels & Voice Channel Tree (ตรงตามภาพ 1)
 socket.on('channels_list', ({ guildName, categories, channels }) => {
-    sidebarTitle.innerText = guildName;
-    channelsList.innerHTML = '';
+    sidebarHeaderTitle.innerText = guildName;
+    sidebarContent.innerHTML = '';
 
     categories.forEach(cat => {
         const catDiv = document.createElement('div');
         catDiv.className = 'category-header';
         catDiv.innerText = `∨ ${cat.name}`;
-        channelsList.appendChild(catDiv);
+        sidebarContent.appendChild(catDiv);
 
         const catChannels = channels.filter(c => c.parentId === cat.id);
-        catChannels.forEach(renderChannelRow);
+        catChannels.forEach(c => renderChannelRow(c));
     });
-
-    const orphanChannels = channels.filter(c => !c.parentId);
-    if (orphanChannels.length > 0) {
-        orphanChannels.forEach(renderChannelRow);
-    }
 });
 
 function renderChannelRow(c) {
     const div = document.createElement('div');
-    div.className = 'channel-row';
-    div.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28401 17 2.04844 16.7189 2.10281 16.4126L2.45747 14.4126C2.5008 14.1683 2.71212 13.9987 2.95988 13.9987H5.46706L6.52928 8H3.12438C2.81328 8 2.57771 7.71889 2.63208 7.41258L2.98674 5.41258C3.03007 5.16829 3.24139 4.99868 3.48915 4.99868H6.99633L7.60207 1.58742C7.65644 1.28111 7.89201 1 8.20311 1H10.2031C10.4509 1 10.6622 1.16961 10.7055 1.4139L11.2721 4.99868H16.2721L16.8778 1.58742C16.9322 1.28111 17.1678 1 17.4789 1H19.4789C19.7267 1 19.938 1.16961 19.9813 1.4139L20.5479 4.99868H23.9528C24.2639 4.99868 24.4995 5.27979 24.4451 5.5861L24.0905 7.5861C24.0471 7.83039 23.8358 8 23.588 8H21.0808L20.0186 14H23.4235C23.7346 14 23.9702 14.2811 23.9158 14.5874L23.5611 16.5874C23.5178 16.8317 23.3065 17 23.0587 17H19.5516L18.9458 20.4126C18.8915 20.7189 18.6559 21 18.3448 21H16.3448C16.097 21 15.8857 20.8304 15.8424 20.5861L15.2758 17H10.2758L9.67007 20.4126C9.6157 20.7189 9.38013 21 9.06903 21H7.06903C6.82127 21 6.60995 20.8304 6.56662 20.5861L5.88657 21ZM10.808 8L9.74578 14H14.7458L15.808 8H10.808Z"/></svg>
-        <span>${c.name}</span>
-    `;
-    div.onclick = () => {
-        document.querySelectorAll('.channel-row').forEach(el => el.classList.remove('active'));
-        div.classList.add('active');
-        currentChannelId = c.id;
-        document.getElementById('header-icon').innerText = '#';
-        chatHeaderTitle.innerText = c.name;
-        messageInput.disabled = false;
-        messageInput.placeholder = `Message #${c.name}`;
-        socket.emit('get_messages', c.id);
-    };
-    channelsList.appendChild(div);
+    div.className = 'channel-item';
+
+    if (c.type === 'text') {
+        div.innerHTML = `<span># ${c.name}</span>`;
+        div.onclick = () => selectChannel(c);
+        sidebarContent.appendChild(div);
+    } else if (c.type === 'voice') {
+        // Voice Channel Header (ภาพ 1)
+        const limitText = c.userLimit > 0 ? `${String(c.memberCount).padStart(2,'0')} / ${c.userLimit}` : `${String(c.memberCount).padStart(2,'0')} / 99`;
+        div.innerHTML = `
+            <span>🔊 ${c.name}</span>
+            <span class="vc-limit">${limitText}</span>
+        `;
+        sidebarContent.appendChild(div);
+
+        // Voice Members Nested Tree (ภาพ 1)
+        if (c.members && c.members.length > 0) {
+            const treeDiv = document.createElement('div');
+            treeDiv.className = 'vc-members-tree';
+            
+            c.members.forEach(m => {
+                const userRow = document.createElement('div');
+                userRow.className = 'vc-user-row';
+                userRow.innerHTML = `
+                    <div class="vc-user-info">
+                        <img src="${m.avatar}" class="vc-user-avatar">
+                        <span>${m.globalName}</span>
+                    </div>
+                    <div class="vc-status-icons">
+                        ${m.selfMute ? '🎙️' : ''}
+                        ${m.selfDeaf ? '🎧' : ''}
+                    </div>
+                `;
+                userRow.onclick = () => openUserProfile(m);
+                treeDiv.appendChild(userRow);
+            });
+            sidebarContent.appendChild(treeDiv);
+        }
+    }
 }
 
+// วาดรายการ DM List (ตรงตามภาพ 2)
 socket.on('dms_list', (dms) => {
-    channelsList.innerHTML = '';
+    sidebarContent.innerHTML = '';
     dms.forEach(d => {
         const div = document.createElement('div');
-        div.className = 'channel-row';
+        div.className = 'dm-item';
         div.innerHTML = `
-            <img src="${d.recipient.avatar}" style="width:20px;height:20px;border-radius:50%;">
-            <span>${d.recipient.username}</span>
+            <div class="dm-avatar-box">
+                <img src="${d.recipient.avatar}">
+                <div class="status-dot ${d.recipient.status}"></div>
+            </div>
+            <div class="dm-details">
+                <div class="dm-name">${d.recipient.globalName}</div>
+                <div class="dm-last-msg">${d.lastMessage || 'ไม่มีข้อความล่าสุด'}</div>
+            </div>
+            <div class="dm-time">${d.timestamp}</div>
         `;
         div.onclick = () => {
-            document.querySelectorAll('.channel-row').forEach(el => el.classList.remove('active'));
-            div.classList.add('active');
             currentChannelId = d.id;
-            document.getElementById('header-icon').innerText = '@';
-            chatHeaderTitle.innerText = d.recipient.username;
-            messageInput.disabled = false;
-            messageInput.placeholder = `Message @${d.recipient.username}`;
+            chatIcon.innerText = '@';
+            chatTitle.innerText = d.recipient.globalName;
+            chatInput.disabled = false;
             socket.emit('get_messages', d.id);
         };
-        channelsList.appendChild(div);
+        sidebarContent.appendChild(div);
     });
 });
 
-socket.on('messages_list', ({ channelId, messages }) => {
-    if (channelId !== currentChannelId) return;
+// วาดรายชื่อสมาชิกฝั่งขวา (Member Sidebar)
+socket.on('guild_members_list', (members) => {
+    memberListContainer.innerHTML = '';
+    members.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'member-row';
+        div.innerHTML = `
+            <div class="dm-avatar-box">
+                <img src="${m.avatar}">
+                <div class="status-dot ${m.status}"></div>
+            </div>
+            <div>
+                <div style="color:${m.roles[0]?.color || '#fff'}; font-weight:bold; font-size:14px;">${m.globalName}</div>
+                <div style="color:var(--text-muted); font-size:12px;">${m.customStatus}</div>
+            </div>
+        `;
+        div.onclick = () => openUserProfile(m);
+        memberListContainer.appendChild(div);
+    });
+});
+
+function selectChannel(c) {
+    currentChannelId = c.id;
+    chatIcon.innerText = '#';
+    chatTitle.innerText = c.name;
+    chatInput.disabled = false;
+    socket.emit('get_messages', c.id);
+}
+
+// ระบบ Chat
+socket.on('messages_list', ({ messages }) => {
     messagesContainer.innerHTML = '';
     messages.forEach(renderMessage);
-    scrollToBottom();
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
 
 socket.on('new_message', (msg) => {
     if (msg.channelId === currentChannelId) {
         renderMessage(msg);
-        scrollToBottom();
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 });
 
-document.getElementById('btn-attach').addEventListener('click', () => fileInput.click());
-
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        selectedFile = e.target.files[0];
-        filePreview.innerText = selectedFile.name;
-        filePreview.classList.remove('hidden');
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && chatInput.value.trim() && currentChannelId) {
+        socket.emit('send_message', { channelId: currentChannelId, content: chatInput.value.trim() });
+        chatInput.value = '';
     }
 });
 
-messageInput.addEventListener('keypress', async (e) => {
-    if (e.key === 'Enter' && currentChannelId) {
-        const content = messageInput.value.trim();
-        let fileData = null;
-
-        if (selectedFile) {
-            const buffer = await selectedFile.arrayBuffer();
-            fileData = { name: selectedFile.name, buffer };
-        }
-
-        if (content || fileData) {
-            socket.emit('send_message', { channelId: currentChannelId, content, file: fileData });
-            messageInput.value = '';
-            selectedFile = null;
-            fileInput.value = '';
-            filePreview.classList.add('hidden');
-        }
-    }
-});
-
-function renderMessage(msg) {
+function renderMessage(m) {
     const div = document.createElement('div');
-    div.className = 'message-wrapper';
-
-    let mediaHtml = '';
-    if (msg.attachments && msg.attachments.length > 0) {
-        msg.attachments.forEach(a => {
-            if (a.contentType && a.contentType.includes('video')) {
-                mediaHtml += `<video src="${a.url}" controls class="msg-media-attachment"></video>`;
-            } else {
-                mediaHtml += `<img src="${a.url}" class="msg-media-attachment">`;
-            }
-        });
-    }
-
+    div.className = 'msg-row';
     div.innerHTML = `
-        <img class="msg-avatar" src="${msg.author.avatar}">
-        <div class="msg-content-box">
-            <div class="msg-title-bar">
-                <span class="msg-author-name">${msg.author.globalName}</span>
-                <span class="msg-timestamp">${msg.timestamp}</span>
+        <img src="${m.author.avatar}" class="msg-avatar">
+        <div>
+            <div>
+                <span class="msg-author">${m.author.globalName}</span>
+                <span class="msg-time">${m.timestamp}</span>
             </div>
-            ${msg.content ? `<div class="msg-text-body">${escapeHtml(msg.content)}</div>` : ''}
-            ${mediaHtml}
+            <div class="msg-body">${m.content}</div>
         </div>
     `;
     messagesContainer.appendChild(div);
 }
 
-function scrollToBottom() { messagesContainer.scrollTop = messagesContainer.scrollHeight; }
-function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+// ระบบ Modal & Profile Viewer
+document.getElementById('btn-self-profile').onclick = () => openUserProfile(currentUser);
+document.getElementById('btn-open-settings').onclick = () => document.getElementById('settings-modal').classList.remove('hidden');
+
+function openUserProfile(user) {
+    document.getElementById('p-avatar').src = user.avatar;
+    document.getElementById('p-global-name').innerText = user.globalName || user.username;
+    document.getElementById('p-username').innerText = `@${user.username}`;
+    
+    const rolesContainer = document.getElementById('p-roles');
+    rolesContainer.innerHTML = '';
+    if (user.roles) {
+        user.roles.forEach(r => {
+            const span = document.createElement('span');
+            span.style.cssText = `background:${r.color}22; color:${r.color}; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-right:4px;`;
+            span.innerText = r.name;
+            rolesContainer.appendChild(span);
+        });
+    }
+
+    document.getElementById('profile-modal').classList.remove('hidden');
+}
+
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.getElementById('btn-logout').onclick = () => location.reload();

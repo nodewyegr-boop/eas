@@ -1,19 +1,173 @@
-<!-- แทรกไว้ใน body ก่อน <div id="app"> -->
-<div id="login-screen" class="login-overlay">
-    <div class="login-box">
-        <div class="login-header">
-            <i class="fa-brands fa-discord login-logo"></i>
-            <h2>ยินดีต้อนรับกลับมา!</h2>
-            <p>เรารู้สึกตื่นเต้นที่จะได้พบคุณอีกครั้ง!</p>
-        </div>
-        <form id="login-form" onsubmit="UI.handleLogin(event)">
-            <div class="form-group">
-                <label>DISCORD TOKEN / BOT TOKEN <span class="required">*</span></label>
-                <input type="password" id="token-input" placeholder="วาง Discord Token ของคุณที่นี่..." required autocomplete="off">
-                <small class="hint-text">Token จะถูกเก็บปลอดภัยใน Browser (localStorage) เท่านั้น</small>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Web Client</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #1e1f22;
+            color: #f2f3f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Discord Overlay Background */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #1e1f22;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            width: 480px;
+            background: #313338;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-logo {
+            font-size: 48px;
+            color: #5865f2;
+            margin-bottom: 12px;
+        }
+
+        .login-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f2f3f5;
+        }
+
+        .login-header p {
+            color: #949ba4;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #b5bac1;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .required {
+            color: #f23f43;
+        }
+
+        .form-group input {
+            background: #1e1f22;
+            border: 1px solid #111214;
+            padding: 10px;
+            border-radius: 4px;
+            color: #f2f3f5;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #5865f2;
+        }
+
+        .hint-text {
+            font-size: 11px;
+            color: #949ba4;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #4752c4;
+        }
+
+        .error-msg {
+            color: #f23f43;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        /* App UI (จะแสดงหลัง Login) */
+        #app {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Discord Login Overlay -->
+    <div id="login-screen" class="login-overlay">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fa-brands fa-discord login-logo"></i>
+                <h2>ยินดีต้อนรับกลับมา!</h2>
+                <p>เรารู้สึกตื่นเต้นที่จะได้พบคุณอีกครั้ง!</p>
             </div>
-            <div id="login-error" class="error-msg" style="display: none;"></div>
-            <button type="submit" id="login-btn" class="btn-submit">เข้าสู่ระบบ</button>
-        </form>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>DISCORD TOKEN <span class="required">*</span></label>
+                    <input type="password" id="token-input" placeholder="วาง Discord Token ของคุณที่นี่..." required autocomplete="off">
+                    <small class="hint-text">Token จะถูกเก็บปลอดภัยใน Browser (localStorage) เท่านั้น</small>
+                </div>
+                <div id="login-error" class="error-msg"></div>
+                <button type="submit" id="login-btn" class="btn-submit">เข้าสู่ระบบ</button>
+            </form>
+        </div>
     </div>
-</div>
+
+    <!-- Main App Layout -->
+    <div id="app">
+        <h1 style="padding: 20px;">กำลังโหลดข้อมูล Discord...</h1>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/socket.js"></script>
+</body>
+</html>

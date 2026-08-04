@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Discord Profile Popout Clone</title>
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+
+    <!-- Discord User Profile Popout Container -->
+    <div class="user-profile-popout" id="profile-card">
+        
+        <!-- 1. Profile Banner (300x120px) -->
+        <div class="profile-banner" id="banner-bg"></div>
+
+        <!-- 2. Header Section (Avatar + Badges) -->
+        <div class="popout-header">
+            <div class="avatar-wrapper">
+                <img id="user-avatar" class="avatar-img" src="" alt="Avatar">
+                <div id="status-indicator" class="status-dot online"></div>
+            </div>
+            
+            <div class="badge-list" id="badge-container">
+                <!-- Badges injected via JS -->
+            </div>
+        </div>
+
+        <!-- 3. Profile Card Body (#111214) -->
+        <div class="popout-body">
+            
+            <!-- User Names -->
+            <div class="user-text">
+                <div class="global-name" id="display-name">Display Name</div>
+                <div class="username-tag" id="username">@username</div>
+                <div class="pronouns" id="pronouns">they/them</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- About Me Section -->
+            <div class="section-title">ABOUT ME</div>
+            <div class="bio-text" id="bio-content">No bio provided.</div>
+
+            <!-- Activity / Rich Presence Section -->
+            <div class="section-title" style="margin-top: 12px;">PLAYING A GAME</div>
+            <div class="activity-box">
+                <div class="activity-icon-wrap">
+                    <img id="activity-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" alt="App">
+                </div>
+                <div class="activity-details">
+                    <div class="activity-name" id="act-name">Visual Studio Code</div>
+                    <div class="activity-state" id="act-details">Editing server.js</div>
+                    <div class="activity-state" id="act-state">Workspace: discord-clone</div>
+                </div>
+            </div>
+
+            <!-- Connected Accounts -->
+            <div class="section-title" style="margin-top: 12px;">CONNECTIONS</div>
+            <div class="connections-list" id="connections-container">
+                <!-- Connections injected via JS -->
+            </div>
+
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>

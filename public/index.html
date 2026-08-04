@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Client</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- Modal ล็อกอิน -->
+    <div id="login-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <h2>Discord Bot Login</h2>
+            <p>ใส่ Bot Token ของคุณเพื่อเริ่มสิงบอท</p>
+            <input type="password" id="token-input" placeholder="วาง Bot Token ที่นี่...">
+            <button id="btn-login">เข้าสู่ระบบ</button>
+            <div id="login-status" class="error-text"></div>
+        </div>
+    </div>
+
+    <!-- หน้าจอ Discord UI -->
+    <div id="app" class="app-container hidden">
+        <!-- แถบเลือกเซิร์ฟเวอร์ -->
+        <div class="guilds-sidebar" id="guilds-list"></div>
+
+        <!-- แถบเลือกห้องแชต -->
+        <div class="channels-sidebar">
+            <div class="guild-header" id="guild-name">เลือกเซิร์ฟเวอร์</div>
+            <div class="channels-list" id="channels-list"></div>
+            <div class="user-profile">
+                <img id="bot-avatar" src="" alt="Bot Avatar">
+                <div class="user-info">
+                    <span id="bot-username">Bot</span>
+                    <span class="status-online">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- พื้นที่แชต -->
+        <div class="chat-area">
+            <div class="chat-header" id="chat-header"># โปรดเลือกห้องแชต</div>
+            <div class="messages-container" id="messages-container"></div>
+            <div class="chat-input-box">
+                <input type="text" id="message-input" placeholder="ส่งข้อความในนามบอท..." disabled>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

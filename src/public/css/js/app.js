@@ -1,35 +1,40 @@
-// src/public/js/app.js
 const UI = {
     handleLogin(e) {
-        if (e) e.preventDefault(); // ป้องกันหน้าเว็บ Refresh
+        if (e) e.preventDefault();
 
         const tokenInput = document.getElementById('token-input');
         const errorDiv = document.getElementById('login-error');
         const loginBtn = document.getElementById('login-btn');
 
-        const token = tokenInput.value.trim();
+        const token = tokenInput ? tokenInput.value.trim() : '';
 
         if (!token) {
             this.showLoginError('กรุณากรอก Token ก่อนเข้าสู่ระบบ');
             return;
         }
 
-        // ซ่อนข้อความ Error เก่า และเปลี่ยนข้อความปุ่ม
         if (errorDiv) errorDiv.style.display = 'none';
-        if (loginBtn) loginBtn.innerText = 'กำลังตรวจสอบ Token...';
+        if (loginBtn) loginBtn.innerText = 'กำลังเข้าสู่ระบบ...';
 
-        // บันทึกลง LocalStorage และส่งให้ Server
         localStorage.setItem('discord_token', token);
-        socket.emit('req_login', { token: token });
+        
+        if (window.socket) {
+            window.socket.emit('req_login', { token: token });
+        } else {
+            this.showLoginError('ระบบ Socket ยังไม่พร้อม เชื่อมต่ออีกครั้ง');
+        }
     },
 
     showLoginScreen() {
-        document.getElementById('login-screen').style.display = 'flex';
+        const el = document.getElementById('login-screen');
+        if (el) el.style.display = 'flex';
     },
 
     hideLoginScreen() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('login-btn').innerText = 'เข้าสู่ระบบ';
+        const el = document.getElementById('login-screen');
+        if (el) el.style.display = 'none';
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) loginBtn.innerText = 'เข้าสู่ระบบ';
     },
 
     showLoginError(msg) {
@@ -38,6 +43,11 @@ const UI = {
             errorDiv.innerText = msg;
             errorDiv.style.display = 'block';
         }
-        document.getElementById('login-btn').innerText = 'เข้าสู่ระบบ';
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) loginBtn.innerText = 'เข้าสู่ระบบ';
+    },
+
+    logout() {
+        if (window.socket) window.socket.emit('req_logout');
     }
 };

@@ -1,14 +1,26 @@
+// src/public/js/app.js
 const UI = {
     handleLogin(e) {
-        e.preventDefault();
+        if (e) e.preventDefault(); // ป้องกันหน้าเว็บ Refresh
+
         const tokenInput = document.getElementById('token-input');
+        const errorDiv = document.getElementById('login-error');
+        const loginBtn = document.getElementById('login-btn');
+
         const token = tokenInput.value.trim();
 
-        if (token) {
-            document.getElementById('login-btn').innerText = 'กำลังเข้าสู่ระบบ...';
-            localStorage.setItem('discord_token', token); // บันทึกลง Browser Storage
-            socket.emit('req_login', { token: token });
+        if (!token) {
+            this.showLoginError('กรุณากรอก Token ก่อนเข้าสู่ระบบ');
+            return;
         }
+
+        // ซ่อนข้อความ Error เก่า และเปลี่ยนข้อความปุ่ม
+        if (errorDiv) errorDiv.style.display = 'none';
+        if (loginBtn) loginBtn.innerText = 'กำลังตรวจสอบ Token...';
+
+        // บันทึกลง LocalStorage และส่งให้ Server
+        localStorage.setItem('discord_token', token);
+        socket.emit('req_login', { token: token });
     },
 
     showLoginScreen() {
@@ -22,12 +34,10 @@ const UI = {
 
     showLoginError(msg) {
         const errorDiv = document.getElementById('login-error');
-        errorDiv.innerText = msg;
-        errorDiv.style.display = 'block';
+        if (errorDiv) {
+            errorDiv.innerText = msg;
+            errorDiv.style.display = 'block';
+        }
         document.getElementById('login-btn').innerText = 'เข้าสู่ระบบ';
-    },
-
-    logout() {
-        socket.emit('req_logout');
     }
 };

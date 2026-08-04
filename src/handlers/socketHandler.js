@@ -1,4 +1,5 @@
-const { createBotClient } = require('../config/discordClient');
+
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 
 module.exports = function registerSocketEvents(socket, io) {
 
@@ -11,7 +12,17 @@ module.exports = function registerSocketEvents(socket, io) {
             try { await socket.discordClient.destroy(); } catch (e) {}
         }
 
-        const client = createBotClient();
+        // สร้าง Bot Client ในนี้โดยตรง
+        const client = new Client({
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.MessageContent,
+                GatewayIntentBits.GuildMembers
+            ],
+            partials: [Partials.Channel, Partials.Message]
+        });
+
         socket.discordClient = client;
 
         client.once('ready', () => {

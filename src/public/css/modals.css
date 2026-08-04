@@ -1,7 +1,106 @@
-/* Modal Systems (ภาพ 5, 7, 8) */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.settings-modal { width: 840px; height: 620px; background: var(--bg-primary); border-radius: 8px; display: flex; overflow: hidden; }
-.settings-menu { width: 220px; background: var(--bg-secondary); padding: 20px 10px; display: flex; flex-direction: column; gap: 4px; }
-.settings-item { color: var(--text-muted); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-.settings-item:hover, .settings-item.active { background: var(--bg-accent); color: white; }
-.settings-view { flex: 1; padding: 40px; overflow-y: auto; color: white; }
+/* Login Screen Style */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url('https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png') no-repeat center #2b2d31;
+    background-size: 200px;
+    background-color: #1e1f22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.login-box {
+    width: 480px;
+    background: #313338;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    color: white;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-logo {
+    font-size: 48px;
+    color: #5865f2;
+    margin-bottom: 12px;
+}
+
+.login-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.login-header p {
+    color: #949ba4;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #b5bac1;
+    letter-spacing: 0.5px;
+}
+
+.required {
+    color: #f23f43;
+}
+
+.form-group input {
+    background: #1e1f22;
+    border: 1px solid #111214;
+    padding: 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: #5865f2;
+}
+
+.hint-text {
+    font-size: 11px;
+    color: #949ba4;
+}
+
+.btn-submit {
+    width: 100%;
+    background: #5865f2;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: #4752c4;
+}
+
+.error-msg {
+    color: #f23f43;
+    font-size: 13px;
+    margin-bottom: 12px;
+}

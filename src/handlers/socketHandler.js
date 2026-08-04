@@ -1,10 +1,9 @@
-const { Client } = require('discord.js-selfbot-v13');
-const DiscordService = require('../services/discordService');
+const { createBotClient } = require('../config/discordClient');
 
 module.exports = function registerSocketEvents(socket, io) {
 
     socket.on('req_login', async ({ token }) => {
-        if (!token) return socket.emit('login_error', 'กรุณากรอก Token');
+        if (!token) return socket.emit('login_error', 'กรุณากรอก Bot Token');
 
         const cleanToken = token.trim().replace(/^["']|["']$/g, '');
 
@@ -12,40 +11,64 @@ module.exports = function registerSocketEvents(socket, io) {
             try { await socket.discordClient.destroy(); } catch (e) {}
         }
 
-        const client = new Client({ checkUpdate: false });
+        const client = createBotClient();
         socket.discordClient = client;
 
-        let isResponded = false;
-
-        // ตั้ง Timeout 10 วินาที ตัดปัญหา Server ค้างเมื่อ Discord บล็อก IP ของ Render
-        const timeout = setTimeout(() => {
-            if (!isResponded) {
-                isResponded = true;
-                try { client.destroy(); } catch (e) {}
-                socket.emit('login_error', 'Discord บล็อกการเชื่อมต่อจาก Render (Data Center IP Block)');
-            }
-        }, 10000);
-
         client.once('ready', () => {
-            if (isResponded) return;
-            isResponded = true;
-            clearTimeout(timeout);
+            console.log(`[Bot Ready] Logged in as: ${client.user.tag}`);
             socket.emit('login_success', {
-                user: client.user ? DiscordService.formatUser(client.user) : null
+                user: {
+                    id: client.user.id,
+                    username: client.user.username,
+                    tag: client.user.tag,
+                    avatar: client.user.displayAvatarURL({ dynamic: true })
+                }
             });
         });
 
         try {
             await client.login(cleanToken);
         } catch (err) {
-            if (isResponded) return;
-            isResponded = true;
-            clearTimeout(timeout);
-            console.error('[Login Error]', err.message);
+            console.error('[Bot Login Error]', err.message);
             
-            let msg = 'Token ไม่ถูกต้อง หรือบัญชีติดด่านยืนยันตัวตน (Captcha)';
-            if (err.message.includes('TOKEN_INVALID')) msg = 'รูปแบบ Token ไม่ถูกต้อง';
+            if (socket.discordClient) {
+                try { await socket.discordClient.destroy(); } catch (e) {}
+                delete socket.discordClient;
+            }
+
+            let msg = 'Bot Token ไม่ถูกต้อง';
+            if (err.message.includes('USED_DISALLOWED_INTENTS')) {
+                msg = 'กรุณาเปิด Privileged Gateway Intents (Message Content) ใน Discord Developer Portal';
+            } else if (err.message.includes('TOKEN_INVALID')) {
+                msg = 'รูปแบบ Bot Token ไม่ถูกต้อง';
+            }
+
             socket.emit('login_error', msg);
+        }
+    });
+
+    socket.on('req_initial_data', async () => {
+        const client = socket.discordClient;
+        if (!client || !client.user) return;
+
+        try {
+            const guilds = client.guilds.cache.map(g => ({
+                id: g.id,
+                name: g.name,
+                icon: g.iconURL({ dynamic: true }) || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png'
+            }));
+
+            socket.emit('res_initial_data', {
+                me: {
+                    id: client.user.id,
+                    username: client.user.username,
+                    tag: client.user.tag,
+                    avatar: client.user.displayAvatarURL({ dynamic: true })
+                },
+                guilds: guilds
+            });
+        } catch (err) {
+            socket.emit('error_notification', err.message);
         }
     });
 

@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot-full-client",
-  "version": "2.0.0",
-  "description": "Full-Featured Discord Bot Web Client",
+  "name": "discord-bot-client-exact",
+  "version": "3.0.0",
+  "description": "Discord Bot Client with Exact Discord Web UI",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -1,12 +1,18 @@
 {
-  "name": "discord-bot-client",
+  "name": "discord-web-client",
   "version": "1.0.0",
+  "description": "Discord Web Client Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "discord.js": "^14.14.1",
     "express": "^4.18.2",
-    "discord.js": "^14.14.1"
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

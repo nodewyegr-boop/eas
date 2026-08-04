@@ -1,50 +1,49 @@
 const socket = io();
 
-let currentGuildId = null;
 let currentChannelId = null;
 
-const loginOverlay = document.getElementById('login-overlay');
+const loginModal = document.getElementById('login-modal');
 const app = document.getElementById('app');
 const tokenInput = document.getElementById('token-input');
 const btnLogin = document.getElementById('btn-login');
-const loginStatus = document.getElementById('login-status');
+const loginError = document.getElementById('login-error');
 
-const guildsScroll = document.getElementById('guilds-scroll');
-const channelsScroller = document.getElementById('channels-scroller');
-const messagesScroller = document.getElementById('messages-scroller');
-const memberListScroller = document.getElementById('member-list-scroller');
+const guildList = document.getElementById('guild-list');
+const channelsList = document.getElementById('channels-list');
+const messagesList = document.getElementById('messages-list');
+const membersList = document.getElementById('members-list');
 const chatInput = document.getElementById('chat-input');
 
 btnLogin.addEventListener('click', () => {
     const token = tokenInput.value.trim();
     if (token) {
-        loginStatus.innerText = 'กำลังตรวจสอบ Token...';
+        loginError.innerText = 'กำลังเชื่อมต่อ...';
         socket.emit('login', token);
     }
 });
 
 socket.on('login_success', ({ user, guilds }) => {
-    loginOverlay.classList.add('hidden');
+    loginModal.classList.add('hidden');
     app.classList.remove('hidden');
 
     document.getElementById('self-avatar').src = user.avatar;
-    document.getElementById('self-display-name').innerText = user.globalName;
+    document.getElementById('self-name').innerText = user.globalName;
     document.getElementById('self-tag').innerText = `@${user.username}`;
 
     renderGuilds(guilds);
 });
 
-socket.on('login_error', (err) => { loginStatus.innerText = err; });
+socket.on('login_error', (err) => { loginError.innerText = err; });
 
 function renderGuilds(guilds) {
-    guildsScroll.innerHTML = '';
+    guildList.innerHTML = '';
     guilds.forEach(g => {
         const item = document.createElement('div');
         item.className = 'guild-item';
         item.title = g.name;
         item.innerHTML = `
-            <div class="pill-indicator"></div>
-            <div class="guild-icon-wrapper">
+            <div class="pill"></div>
+            <div class="guild-icon">
                 ${g.icon ? `<img src="${g.icon}">` : g.acronym}
             </div>
         `;
@@ -52,111 +51,101 @@ function renderGuilds(guilds) {
         item.onclick = () => {
             document.querySelectorAll('.guild-item').forEach(el => el.classList.remove('active'));
             item.classList.add('active');
-            currentGuildId = g.id;
             socket.emit('get_channels', g.id);
             socket.emit('get_guild_members', g.id);
         };
 
-        guildsScroll.appendChild(item);
+        guildList.appendChild(item);
     });
 }
 
 socket.on('channels_list', ({ guildName, categories, channels }) => {
-    document.getElementById('guild-name-title').innerText = guildName;
-    channelsScroller.innerHTML = '';
+    document.getElementById('guild-title').innerText = guildName;
+    channelsList.innerHTML = '';
 
     categories.forEach(cat => {
         const catHeader = document.createElement('div');
-        catHeader.className = 'category-title';
+        catHeader.className = 'category-header';
         catHeader.innerText = `∨ ${cat.name}`;
-        channelsScroller.appendChild(catHeader);
+        channelsList.appendChild(catHeader);
 
         const catChannels = channels.filter(c => c.parentId === cat.id);
         catChannels.forEach(c => {
             const row = document.createElement('div');
-            row.className = 'channel-row';
+            row.className = 'channel-item';
 
             if (c.type === 'text') {
                 row.innerHTML = `<span># ${c.name}</span>`;
                 row.onclick = () => {
-                    document.querySelectorAll('.channel-row').forEach(el => el.classList.remove('active'));
+                    document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
                     row.classList.add('active');
                     currentChannelId = c.id;
-                    document.getElementById('chat-title').innerText = c.name;
+                    document.getElementById('channel-title').innerText = c.name;
                     chatInput.disabled = false;
                     chatInput.placeholder = `ส่งข้อความใน #${c.name}`;
                     socket.emit('get_messages', c.id);
                 };
-                channelsScroller.appendChild(row);
+                channelsList.appendChild(row);
             } else if (c.type === 'voice') {
                 row.innerHTML = `<span>🔊 ${c.name}</span>`;
-                channelsScroller.appendChild(row);
+                channelsList.appendChild(row);
 
                 if (c.members && c.members.length > 0) {
-                    const vcTree = document.createElement('div');
-                    vcTree.className = 'vc-user-list';
+                    const tree = document.createElement('div');
+                    tree.className = 'vc-member-tree';
                     c.members.forEach(m => {
-                        const uRow = document.createElement('div');
-                        uRow.className = 'vc-user-item';
-                        uRow.innerHTML = `
-                            <img src="${m.avatar}" class="vc-user-avatar">
-                            <span>${m.globalName}</span>
-                        `;
-                        vcTree.appendChild(uRow);
+                        const mRow = document.createElement('div');
+                        mRow.className = 'vc-member-item';
+                        mRow.innerHTML = `<img src="${m.avatar}"><span>${m.globalName}</span>`;
+                        tree.appendChild(mRow);
                     });
-                    channelsScroller.appendChild(vcTree);
+                    channelsList.appendChild(tree);
                 }
             }
         });
     });
 });
 
-// Render Member List
 socket.on('guild_members_list', (members) => {
-    memberListScroller.innerHTML = '';
-    
-    // Group members by role
-    const onlineMembers = members.filter(m => m.status !== 'offline');
-    const offlineMembers = members.filter(m => m.status === 'offline');
+    membersList.innerHTML = '';
+    const online = members.filter(m => m.status !== 'offline');
+    const offline = members.filter(m => m.status === 'offline');
 
-    renderMemberGroup(`ออนไลน์ — ${onlineMembers.length}`, onlineMembers);
-    renderMemberGroup(`ออฟไลน์ — ${offlineMembers.length}`, offlineMembers);
+    renderGroup(`ออนไลน์ — ${online.length}`, online);
+    renderGroup(`ออฟไลน์ — ${offline.length}`, offline);
 });
 
-function renderMemberGroup(title, list) {
+function renderGroup(title, list) {
     if (list.length === 0) return;
     const header = document.createElement('div');
-    header.className = 'role-header';
+    header.className = 'role-title';
     header.innerText = title;
-    memberListScroller.appendChild(header);
+    membersList.appendChild(header);
 
     list.forEach(m => {
-        const row = document.createElement('div');
-        row.className = 'member-row';
-        row.innerHTML = `
-            <div class="avatar-container">
+        const item = document.createElement('div');
+        item.className = 'member-item';
+        item.innerHTML = `
+            <div class="avatar-wrap">
                 <img src="${m.avatar}">
                 <div class="status-dot ${m.status}"></div>
             </div>
-            <div>
-                <div style="color:${m.highestRole.color}; font-weight:bold; font-size:14px;">${m.globalName}</div>
-                <div style="color:var(--text-muted); font-size:12px;">${m.customStatus}</div>
-            </div>
+            <div style="color:${m.roleColor}; font-weight:bold; font-size:14px;">${m.globalName}</div>
         `;
-        memberListScroller.appendChild(row);
+        membersList.appendChild(item);
     });
 }
 
 socket.on('messages_list', ({ messages }) => {
-    messagesScroller.innerHTML = '';
+    messagesList.innerHTML = '';
     messages.forEach(renderMessage);
-    messagesScroller.scrollTop = messagesScroller.scrollHeight;
+    messagesList.scrollTop = messagesList.scrollHeight;
 });
 
 socket.on('new_message', (msg) => {
     if (msg.channelId === currentChannelId) {
         renderMessage(msg);
-        messagesScroller.scrollTop = messagesScroller.scrollHeight;
+        messagesList.scrollTop = messagesList.scrollHeight;
     }
 });
 
@@ -168,17 +157,17 @@ chatInput.addEventListener('keypress', (e) => {
 });
 
 function renderMessage(m) {
-    const card = document.createElement('div');
-    card.className = 'msg-card';
-    card.innerHTML = `
+    const row = document.createElement('div');
+    row.className = 'message-row';
+    row.innerHTML = `
         <img src="${m.author.avatar}" class="msg-avatar">
         <div>
-            <div class="msg-header">
+            <div class="msg-meta">
                 <span class="msg-author">${m.author.globalName}</span>
                 <span class="msg-time">${m.timestamp}</span>
             </div>
-            <div class="msg-content">${m.content}</div>
+            <div class="msg-text">${m.content}</div>
         </div>
     `;
-    messagesScroller.appendChild(card);
+    messagesList.appendChild(row);
 }

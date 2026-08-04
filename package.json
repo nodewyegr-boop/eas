@@ -1,7 +1,6 @@
 {
-  "name": "discord-desktop-replica",
-  "version": "5.0.0",
-  "description": "Pixel-Perfect Discord Desktop Client Replica with Real-time WebSocket Sync",
+  "name": "discord-desktop-clone",
+  "version": "6.0.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

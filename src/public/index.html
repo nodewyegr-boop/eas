@@ -1,155 +1,19 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Client Engine</title>
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/modals.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div id="app" class="discord-app">
-        <!-- 1. Left Guild Rail Navigation -->
-        <nav class="server-rail">
-            <div class="server-icon active" id="btn-home" onclick="UI.switchTab('dm')">
-                <i class="fa-brands fa-discord"></i>
-                <div class="mention-badge" id="total-mention-badge" style="display:none;">0</div>
+<!-- แทรกไว้ใน body ก่อน <div id="app"> -->
+<div id="login-screen" class="login-overlay">
+    <div class="login-box">
+        <div class="login-header">
+            <i class="fa-brands fa-discord login-logo"></i>
+            <h2>ยินดีต้อนรับกลับมา!</h2>
+            <p>เรารู้สึกตื่นเต้นที่จะได้พบคุณอีกครั้ง!</p>
+        </div>
+        <form id="login-form" onsubmit="UI.handleLogin(event)">
+            <div class="form-group">
+                <label>DISCORD TOKEN / BOT TOKEN <span class="required">*</span></label>
+                <input type="password" id="token-input" placeholder="วาง Discord Token ของคุณที่นี่..." required autocomplete="off">
+                <small class="hint-text">Token จะถูกเก็บปลอดภัยใน Browser (localStorage) เท่านั้น</small>
             </div>
-            <div class="rail-divider"></div>
-            <div id="guild-icon-list"></div>
-            <div class="server-icon add-btn" onclick="UI.showJoinModal()">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-            <div class="server-icon explore-btn">
-                <i class="fa-solid fa-compass"></i>
-            </div>
-        </nav>
-
-        <!-- 2. Sub Sidebar (DMs & Channels) -->
-        <aside class="sub-sidebar">
-            <div class="sidebar-header">
-                <button class="search-trigger" onclick="UI.openSearch()"><i class="fa-solid fa-magnifying-glass"></i> ค้นหา หรือเริ่มการสนทนา</button>
-            </div>
-            
-            <!-- Direct Message Menu View (ภาพ 1) -->
-            <div class="sidebar-body" id="dm-sidebar-view">
-                <div class="dm-nav-item active" onclick="UI.switchDMView('friends')"><i class="fa-solid fa-user-group"></i> เพื่อนของฉัน</div>
-                <div class="dm-nav-item" onclick="UI.switchDMView('nitro')"><i class="fa-solid fa-rocket"></i> Nitro</div>
-                <div class="dm-nav-item" onclick="UI.switchDMView('shop')"><i class="fa-solid fa-store"></i> ร้านค้า</div>
-                <div class="dm-nav-item" onclick="UI.switchDMView('quests')"><i class="fa-solid fa-compass"></i> ภารกิจ</div>
-
-                <div class="dm-header-title">
-                    <span>ข้อความส่วนตัว</span>
-                    <i class="fa-solid fa-plus" onclick="UI.openCreateDMModal()" title="สร้างข้อความส่วนตัว"></i>
-                </div>
-
-                <!-- Official System Bot Chat Entry (ภาพ 1 & 2) -->
-                <div class="dm-user-card official-card" onclick="UI.openOfficialSystemDM()">
-                    <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" class="avatar">
-                    <div class="details">
-                        <div class="name">Discord System <span class="badge system-badge"><i class="fa-solid fa-check"></i> ทางการ</span></div>
-                        <div class="subtext">การสิงบอทแบบการโคลนมาจาก Discord...</div>
-                    </div>
-                </div>
-
-                <div id="dm-list-container"></div>
-            </div>
-
-            <!-- Server Channel View (ภาพ 3 & 4) -->
-            <div class="sidebar-body" id="guild-sidebar-view" style="display: none;">
-                <div class="guild-title-bar" onclick="UI.toggleGuildMenu()">
-                    <span id="active-guild-name">Server Name</span>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <div id="channel-list-container"></div>
-            </div>
-
-            <!-- User Status Panel Bottom Left (ภาพ 1-6) -->
-            <div class="user-panel">
-                <div class="user-profile-preview" onclick="UI.openProfileModal('self')">
-                    <div class="avatar-wrapper">
-                        <img id="self-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" class="avatar">
-                        <div class="status-dot online" id="self-status-dot"></div>
-                    </div>
-                    <div class="user-text">
-                        <div id="self-username" class="username">Discord User</div>
-                        <div id="self-subtext" class="status-text">ออนไลน์</div>
-                    </div>
-                </div>
-                <div class="user-controls">
-                    <button class="ctrl-btn" id="mic-btn" onclick="Voice.toggleMic()"><i class="fa-solid fa-microphone"></i></button>
-                    <button class="ctrl-btn" id="deaf-btn" onclick="Voice.toggleDeaf()"><i class="fa-solid fa-headphones"></i></button>
-                    <button class="ctrl-btn" onclick="UI.openUserSettings()"><i class="fa-solid fa-gear"></i></button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- 3. Main Workspace / Chat Viewport -->
-        <main class="main-viewport">
-            <header class="top-header">
-                <div class="header-info">
-                    <i class="fa-solid fa-hashtag" id="header-type-icon"></i>
-                    <span class="header-title" id="header-title-text">ข้อความ</span>
-                </div>
-                <div class="header-actions">
-                    <button class="act-btn" title="เริ่มการโทร" onclick="Voice.startCall('voice')"><i class="fa-solid fa-phone"></i></button>
-                    <button class="act-btn" title="เริ่มการคอลวิดีโอ" onclick="Voice.startCall('video')"><i class="fa-solid fa-video"></i></button>
-                    <button class="act-btn" title="ข้อความที่ปักหมุด" onclick="UI.togglePinnedModal()"><i class="fa-solid fa-thumbtack"></i></button>
-                    <button class="act-btn" title="ซ่อน/แสดง รายชื่อสมาชิก" onclick="UI.toggleMemberList()"><i class="fa-solid fa-users"></i></button>
-                    <div class="header-search">
-                        <input type="text" placeholder="ค้นหา">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </div>
-                    <button class="act-btn" title="กล่องขาเข้า" onclick="UI.toggleInbox()"><i class="fa-solid fa-inbox"></i></button>
-                    <button class="act-btn" title="ช่วยเหลือ" onclick="UI.openHelp()"><i class="fa-solid fa-circle-question"></i></button>
-                </div>
-            </header>
-
-            <div class="chat-wrapper">
-                <div class="messages-scroll" id="messages-container">
-                    <!-- Unread Red Indicator Bar (ภาพ 4) -->
-                    <div class="unread-bar" id="unread-bar" style="display: none;">
-                        <span>ข้อความยังไม่ได้อ่าน</span>
-                    </div>
-                </div>
-
-                <!-- Chat Input Controls (ภาพ 2) -->
-                <div class="chat-input-container">
-                    <div class="chat-input-bar">
-                        <button class="input-add-btn"><i class="fa-solid fa-circle-plus"></i></button>
-                        <input type="text" id="chat-input" placeholder="ส่งข้อความ..." onkeypress="UI.handleInputKey(event)">
-                        <div class="input-actions-group">
-                            <button class="input-act-btn" title="ส่งของขวัญ"><i class="fa-solid fa-gift"></i></button>
-                            <button class="input-act-btn" title="ส่ง GIF"><i class="fa-solid fa-file-image"></i></button>
-                            <button class="input-act-btn" title="ส่งสติ๊กเกอร์"><i class="fa-solid fa-note-sticky"></i></button>
-                            <button class="input-act-btn" title="เล่นเกมคู่"><i class="fa-solid fa-gamepad"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- 4. Member List Sidebar Right (ภาพ 3, 4, 5) -->
-        <aside class="member-sidebar" id="member-sidebar">
-            <div class="member-group-header">สมาชิกออนไลน์ — <span id="online-member-count">0</span></div>
-            <div id="member-list-content"></div>
-        </aside>
+            <div id="login-error" class="error-msg" style="display: none;"></div>
+            <button type="submit" id="login-btn" class="btn-submit">เข้าสู่ระบบ</button>
+        </form>
     </div>
-
-    <!-- Dynamic Modal System -->
-    <div id="modal-root"></div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/utils/formatter.js"></script>
-    <script src="js/socket.js"></script>
-    <script src="js/components/chat.js"></script>
-    <script src="js/components/sidebar.js"></script>
-    <script src="js/components/profileModal.js"></script>
-    <script src="js/components/settingsModal.js"></script>
-    <script src="js/components/voice.js"></script>
-    <script src="js/app.js"></script>
-</body>
-</html>
+</div>

@@ -1,44 +1,99 @@
-// src/handlers/socketHandler.js
+const { Client } = require('discord.js-selfbot-v13');
 const DiscordService = require('../services/discordService');
 
-module.exports = function registerSocketEvents(socket, client, io) {
+module.exports = function registerSocketEvents(socket, io) {
 
     socket.on('req_login', async ({ token }) => {
         try {
-            if (!token || typeof token !== 'string') {
+            if (!token) {
                 return socket.emit('login_error', 'กรุณากรอก Token');
             }
 
-            // ทำความสะอาด Token (ตัดช่องว่าง และฟันหนูออก)
             const cleanToken = token.trim().replace(/^["']|["']$/g, '');
 
-            // ตัดการเชื่อมต่อเดิมอย่างปลอดภัยก่อนต่อใหม่
-            try {
-                if (client.readyAt) {
-                    await client.destroy();
-                }
-            } catch (destroyErr) {
-                console.log('[Warn] Cleanup old connection:', destroyErr.message);
+            // ล้าง Client เก่าถ้ามี
+            if (socket.discordClient) {
+                try { await socket.discordClient.destroy(); } catch (e) {}
             }
 
-            // สั่ง Login เข้า Discord
-            await client.login(cleanToken);
+            console.log('[Server] Attempting login with token...');
 
-            socket.emit('login_success', {
-                user: client.user ? DiscordService.formatUser(client.user) : null
+            const client = new Client({ 
+                checkUpdate: false,
+                captchaSolver: null 
+            });
+            socket.discordClient = client;
+
+            // ตั้ง Timeout ป้องกันค้าง
+            const loginTimeout = setTimeout(() => {
+                if (!client.readyAt) {
+                    try { client.destroy(); } catch(e){}
+                    socket.emit('login_error', 'การเชื่อมต่อหมดเวลา (Discord บล็อก IP จาก Render)');
+                }
+            }, 15000);
+
+            client.once('ready', () => {
+                clearTimeout(loginTimeout);
+                console.log(`[Server] Logged in as: ${client.user.tag}`);
+                socket.emit('login_success', {
+                    user: DiscordService.formatUser(client.user)
+                });
             });
 
-        } catch (err) {
-            console.error('[Login Error]', err.message);
-            
-            // ส่ง Error แปลไทยกลับไปหน้าเว็บ
-            let errMsg = 'Token ไม่ถูกต้อง หรือถูกระงับการใช้งาน';
-            if (err.message.includes('TOKEN_INVALID')) errMsg = 'รูปแบบ Token ไม่ถูกต้อง';
-            if (err.message.includes('DISALLOWED_INTENTS')) errMsg = 'บอทขาดการเปิด Intents ใน Discord Developer Portal';
+            client.on('messageCreate', (message) => {
+                socket.emit('discord_message_create', DiscordService.formatMessage(message));
+            });
 
-            socket.emit('login_error', errMsg);
+            await client.login(cleanToken);
+
+        } catch (err) {
+            console.error('[Login Error Detail]:', err);
+
+            if (socket.discordClient) {
+                try { await socket.discordClient.destroy(); } catch (e) {}
+                delete socket.discordClient;
+            }
+
+            let message = err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+            if (message.includes('TOKEN_INVALID')) message = 'Token ไม่ถูกต้อง หรือถูกยกเลิกไปแล้ว';
+            if (message.includes('CAPTCHA')) message = 'บัญชีติดด่าน Captcha (Discord บล็อก IP Render)';
+            if (message.includes('401')) message = 'Unauthorized: Token ไม่สามารถใช้งานได้';
+
+            socket.emit('login_error', message);
         }
     });
 
-    // ... Event อื่นๆ
+    socket.on('req_initial_data', async () => {
+        const client = socket.discordClient;
+        if (!client || !client.user) return;
+
+        try {
+            const guilds = client.guilds.cache.map(g => ({
+                id: g.id,
+                name: g.name,
+                icon: g.iconURL({ dynamic: true }) || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png'
+            }));
+
+            socket.emit('res_initial_data', {
+                me: DiscordService.formatUser(client.user),
+                guilds: guilds
+            });
+        } catch (err) {
+            socket.emit('error_notification', err.message);
+        }
+    });
+
+    socket.on('req_logout', async () => {
+        if (socket.discordClient) {
+            try { await socket.discordClient.destroy(); } catch (e) {}
+            delete socket.discordClient;
+        }
+        socket.emit('logout_success');
+    });
+
+    socket.on('disconnect', async () => {
+        if (socket.discordClient) {
+            try { await socket.discordClient.destroy(); } catch (e) {}
+        }
+    });
 };

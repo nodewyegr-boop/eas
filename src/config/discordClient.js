@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client } = require('discord.js-selfbot-v13');
 
 const client = new Client({
     intents: [

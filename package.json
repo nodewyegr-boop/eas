@@ -1,7 +1,7 @@
 {
-  "name": "discord-full-client",
-  "version": "4.0.0",
-  "description": "Discord Desktop Web Client Replica with Voice Channel Trees, DM previews, and Profiles",
+  "name": "discord-desktop-replica",
+  "version": "5.0.0",
+  "description": "Pixel-Perfect Discord Desktop Client Replica with Real-time WebSocket Sync",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

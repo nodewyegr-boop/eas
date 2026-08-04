@@ -3,46 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Bot Client</title>
+    <title>Discord Bot Web Client - Full Version</title>
     <link rel="stylesheet" href="style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <!-- Modal ล็อกอิน -->
+    <!-- ล็อกอิน Modal -->
     <div id="login-overlay" class="modal-overlay">
         <div class="modal-box">
             <h2>Discord Bot Login</h2>
-            <p>ใส่ Bot Token ของคุณเพื่อเริ่มสิงบอท</p>
+            <p>ใส่ Bot Token เพื่อเข้าควบคุมบอทเต็มรูปแบบ</p>
             <input type="password" id="token-input" placeholder="วาง Bot Token ที่นี่...">
             <button id="btn-login">เข้าสู่ระบบ</button>
             <div id="login-status" class="error-text"></div>
         </div>
     </div>
 
-    <!-- หน้าจอ Discord UI -->
-    <div id="app" class="app-container hidden">
-        <!-- แถบเลือกเซิร์ฟเวอร์ -->
-        <div class="guilds-sidebar" id="guilds-list"></div>
+    <!-- แก้ไขโปรไฟล์บอท Modal -->
+    <div id="edit-bot-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>แก้ไขโปรไฟล์บอท</h3>
+            <input type="text" id="edit-username" placeholder="ชื่อบอทใหม่">
+            <input type="text" id="edit-avatar" placeholder="URL รูปโปรไฟล์ใหม่">
+            <input type="text" id="edit-status" placeholder="ข้อความสถานะ (Playing...)">
+            <div class="modal-actions">
+                <button id="btn-save-profile">บันทึก</button>
+                <button id="btn-close-edit-profile" class="btn-cancel">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- แถบเลือกห้องแชต -->
+    <!-- ดูโปรไฟล์ผู้ใช้ Modal -->
+    <div id="user-profile-modal" class="modal-overlay hidden">
+        <div class="modal-box profile-card">
+            <div class="profile-banner" id="p-banner"></div>
+            <img class="profile-avatar" id="p-avatar" src="" alt="avatar">
+            <h3 id="p-username">Username</h3>
+            <p id="p-tag" class="sub-text">#0000</p>
+            <hr>
+            <div class="profile-details">
+                <p><strong>สร้างบัญชีเมื่อ:</strong> <span id="p-created">-</span></p>
+                <p><strong>เข้าร่วมเซิร์ฟเวอร์:</strong> <span id="p-joined">-</span></p>
+                <p><strong>ยศ:</strong> <span id="p-roles">-</span></p>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-start-dm">ส่งข้อความส่วนตัว (DM)</button>
+                <button id="btn-close-user-profile" class="btn-cancel">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- แก้ไขเซิร์ฟเวอร์ Modal -->
+    <div id="edit-guild-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>ตั้งค่าเซิร์ฟเวอร์</h3>
+            <input type="text" id="edit-guild-name" placeholder="ชื่อเซิร์ฟเวอร์ใหม่">
+            <input type="text" id="edit-guild-icon" placeholder="URL ไอคอนเซิร์ฟเวอร์">
+            <div class="modal-actions">
+                <button id="btn-save-guild">บันทึก</button>
+                <button id="btn-close-edit-guild" class="btn-cancel">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discord UI الرئيسي -->
+    <div id="app" class="app-container hidden">
+        <!-- แถบรายการเซิร์ฟเวอร์ -->
+        <div class="guilds-sidebar">
+            <div class="guild-icon dm-icon" id="btn-dm-tab" title="Direct Messages">DM</div>
+            <div class="divider"></div>
+            <div id="guilds-list" class="guilds-list"></div>
+        </div>
+
+        <!-- แถบช่องแชต -->
         <div class="channels-sidebar">
-            <div class="guild-header" id="guild-name">เลือกเซิร์ฟเวอร์</div>
+            <div class="guild-header">
+                <span id="guild-name">Direct Messages</span>
+                <button id="btn-guild-settings" class="icon-btn hidden" title="ตั้งค่าเซิร์ฟเวอร์">⚙️</button>
+                <button id="btn-create-invite" class="icon-btn hidden" title="สร้างลิงก์เชิญ">🔗</button>
+            </div>
             <div class="channels-list" id="channels-list"></div>
+
+            <!-- กล่องแสดงโปรไฟล์บอทกดแก้ไขได้ -->
             <div class="user-profile">
                 <img id="bot-avatar" src="" alt="Bot Avatar">
                 <div class="user-info">
                     <span id="bot-username">Bot</span>
                     <span class="status-online">Online</span>
                 </div>
+                <button id="btn-open-edit-profile" class="icon-btn" title="แก้ไขโปรไฟล์">✏️</button>
             </div>
         </div>
 
         <!-- พื้นที่แชต -->
         <div class="chat-area">
-            <div class="chat-header" id="chat-header"># โปรดเลือกห้องแชต</div>
+            <div class="chat-header" id="chat-header">โปรดเลือกห้องแชตหรือ DM</div>
             <div class="messages-container" id="messages-container"></div>
+
             <div class="chat-input-box">
-                <input type="text" id="message-input" placeholder="ส่งข้อความในนามบอท..." disabled>
+                <input type="file" id="file-input" accept="image/*,video/*,.gif" class="hidden">
+                <button id="btn-attach" class="chat-btn" title="ส่งไฟล์/ภาพ/วิดีโอ">+</button>
+                <input type="text" id="message-input" placeholder="พิมพ์ข้อความ..." disabled>
+                <div id="file-preview" class="file-preview hidden"></div>
             </div>
         </div>
     </div>

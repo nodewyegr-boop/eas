@@ -1,99 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord</title>
+    <title>Discord Web Client Desktop Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-    <!-- Discord Login Modal -->
-    <div id="login-overlay" class="login-container">
+    <!-- Login Screen -->
+    <div id="login-overlay" class="modal-backdrop">
         <div class="login-card">
-            <div class="login-header">
-                <h2>Welcome back!</h2>
-                <p>Log in with your Discord Bot Token to control the bot.</p>
-            </div>
-            <div class="login-form">
+            <h2>ยินดีต้อนรับกลับมา!</h2>
+            <p>กรอก Discord Bot Token เพื่อเข้าใช้งาน UI รูปแบบ PC</p>
+            <div class="form-group">
                 <label>BOT TOKEN <span>*</span></label>
-                <input type="password" id="token-input" placeholder="OTk4OT..." autocomplete="off">
-                <button id="btn-login">Log In</button>
-                <div id="login-status" class="login-error"></div>
+                <input type="password" id="token-input" placeholder="MTAxMjM0NTY3ODkw...">
+                <button id="btn-login">เข้าสู่ระบบ</button>
+                <div id="login-status" class="error-msg"></div>
             </div>
         </div>
     </div>
 
-    <!-- Main Discord App -->
-    <div id="app" class="discord-app hidden">
-        <!-- Guilds Sidebar -->
-        <nav class="servers-nav">
-            <div class="server-item active-dm" id="btn-dm-tab" title="Direct Messages">
-                <div class="pill"></div>
-                <div class="server-icon-wrapper">
-                    <svg class="discord-logo-icon" width="28" height="20" viewBox="0 0 127.14 96.36">
-                        <path fill="#ffffff" d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0,3.36,6.83A97.68,97.68,0,0,0,42.31,6.83,72.37,72.37,0,0,0,45.67,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1,10.85-5.18c.91-.32,1.8-.67,2.67-1a7.8,7.8,0,0,1,2.83.6c11.3,5.32,23.82,5.32,35,0a7.8,7.8,0,0,1,2.83-.6c.88.35,1.77.7,2.68,1a68.3,68.3,0,0,1,10.84,5.18,77.53,77.53,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14C129.24,49.2,123.63,25.5,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.92,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.92,96.12,53,91.08,65.69,84.69,65.69Z"/>
-                    </svg>
-                </div>
+    <!-- App Container -->
+    <div id="app" class="discord-layout hidden">
+        <!-- 1. Guilds Sidebar (Leftmost) -->
+        <nav class="guilds-bar">
+            <div class="guild-icon active-dm" id="btn-dm-tab" title="ข้อความส่วนตัว">
+                <svg width="28" height="20" viewBox="0 0 127.14 96.36">
+                    <path fill="#ffffff" d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0,3.36,6.83A97.68,97.68,0,0,0,42.31,6.83,72.37,72.37,0,0,0,45.67,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1,10.85-5.18c.91-.32,1.8-.67,2.67-1a7.8,7.8,0,0,1,2.83.6c11.3,5.32,23.82,5.32,35,0a7.8,7.8,0,0,1,2.83-.6c.88.35,1.77.7,2.68,1a68.3,68.3,0,0,1,10.84,5.18,77.53,77.53,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14C129.24,49.2,123.63,25.5,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.92,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.92,96.12,53,91.08,65.69,84.69,65.69Z"/>
+                </svg>
             </div>
-            <div class="guild-separator"></div>
-            <div id="guilds-list" class="guilds-scroll-list"></div>
+            <div class="guild-divider"></div>
+            <div id="guilds-container" class="guilds-scroll"></div>
         </nav>
 
-        <!-- Channels / DM Sidebar -->
-        <aside class="sidebar-channels">
+        <!-- 2. Channels & DM Sidebar -->
+        <aside class="sidebar-second">
             <header class="sidebar-header">
-                <span id="sidebar-title">Direct Messages</span>
+                <span id="sidebar-header-title">ข้อความส่วนตัว</span>
             </header>
-            
-            <div class="channels-scroller" id="channels-list"></div>
 
-            <!-- Discord Current User Bar -->
-            <footer class="user-control-bar">
-                <div class="user-avatar-wrapper">
-                    <img id="bot-avatar" src="" alt="avatar">
-                    <div class="status-indicator online"></div>
+            <!-- Search Bar ในหน้า DM เหมือนภาพ 2 -->
+            <div id="dm-search-bar" class="dm-search-box">
+                <input type="text" placeholder="หาหรือเริ่มการสนทนา">
+                <button class="add-friend-btn">+ เพิ่มเพื่อน</button>
+            </div>
+
+            <!-- Channels & Voice Tree or DM List -->
+            <div id="sidebar-content" class="channels-scroller"></div>
+
+            <!-- Bottom Self User Bar -->
+            <footer class="self-user-bar">
+                <div class="user-info-btn" id="btn-self-profile">
+                    <div class="avatar-wrapper">
+                        <img id="self-avatar" src="" alt="avatar">
+                        <div class="status-dot online"></div>
+                    </div>
+                    <div class="name-tag">
+                        <div id="self-name" class="display-name">User</div>
+                        <div id="self-status" class="sub-status">ออนไลน์</div>
+                    </div>
                 </div>
-                <div class="user-details">
-                    <div id="bot-display-name" class="username-text">Bot</div>
-                    <div id="bot-status-text" class="sub-text">Online</div>
-                </div>
-                <div class="user-buttons">
-                    <button class="icon-btn" title="Mute">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-                    </button>
-                    <button class="icon-btn" title="Deafen">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h3v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-3v8h3c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>
-                    </button>
-                    <button class="icon-btn" title="User Settings">
+                <div class="user-actions">
+                    <button id="btn-open-settings" title="ตั้งค่าผู้ใช้">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                     </button>
                 </div>
             </footer>
         </aside>
 
-        <!-- Main Chat Area -->
+        <!-- 3. Main Chat Viewport -->
         <main class="chat-viewport">
-            <header class="chat-topbar">
-                <div class="channel-header-icon" id="header-icon">#</div>
-                <div class="channel-header-title" id="chat-header-title">Select Channel</div>
+            <header class="chat-header">
+                <span id="chat-icon" class="header-icon">#</span>
+                <span id="chat-title" class="header-title">เลือกช่องทาง</span>
             </header>
 
-            <div class="messages-scroller" id="messages-container"></div>
+            <div id="messages-container" class="messages-scroller"></div>
 
-            <!-- Discord Chat Input Box -->
-            <div class="chat-input-wrapper">
-                <div class="chat-input-inner">
-                    <input type="file" id="file-input" accept="image/*,video/*,.gif" class="hidden">
-                    <button class="attach-btn" id="btn-attach" title="Upload a file">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-                    </button>
-                    <input type="text" id="message-input" placeholder="Message" disabled>
-                    <div id="file-preview" class="file-preview-badge hidden"></div>
-                </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="ส่งข้อความ..." disabled>
             </div>
         </main>
+
+        <!-- 4. Member List Sidebar (Right Panel) -->
+        <aside id="member-sidebar" class="member-sidebar">
+            <div class="member-section-header">สมาชิกในเซิร์ฟเวอร์</div>
+            <div id="member-list-container" class="member-list-scroller"></div>
+        </aside>
+    </div>
+
+    <!-- 5. Modal Profile View (คลิกดูโปรไฟล์ตัวเอง/คนอื่น เหมือนในคอม) -->
+    <div id="profile-modal" class="modal-backdrop hidden">
+        <div class="profile-card">
+            <div class="profile-banner" id="p-banner"></div>
+            <div class="profile-header">
+                <img id="p-avatar" src="" class="profile-avatar">
+            </div>
+            <div class="profile-body">
+                <h3 id="p-global-name">User Name</h3>
+                <p id="p-username" class="p-subtext">@username</p>
+                <div class="divider"></div>
+                <h4>บทบาท (ROLES)</h4>
+                <div id="p-roles" class="roles-badge-container"></div>
+            </div>
+            <button class="close-modal-btn" onclick="closeModal('profile-modal')">ปิด</button>
+        </div>
+    </div>
+
+    <!-- 6. Full Desktop Settings Modal (เปิดจากการกดโปรไฟล์ตัวเอง) -->
+    <div id="settings-modal" class="modal-backdrop hidden">
+        <div class="settings-full-card">
+            <aside class="settings-sidebar">
+                <div class="settings-menu-item active">บัญชีของฉัน</div>
+                <div class="settings-menu-item">โปรไฟล์ผู้ใช้</div>
+                <div class="settings-menu-item">การปรากฏ (Theme)</div>
+                <div class="settings-menu-item danger" id="btn-logout">ออกจากระบบ</div>
+            </aside>
+            <main class="settings-content">
+                <h2>ตั้งค่าผู้ใช้ (User Settings)</h2>
+                <div class="setting-box">
+                    <label>ชื่อผู้ใช้</label>
+                    <input type="text" id="setting-username-input" readonly>
+                </div>
+                <div class="setting-box">
+                    <label>สถานะที่แสดง</label>
+                    <select id="setting-status-select">
+                        <option value="online">🟢 ออนไลน์ (Online)</option>
+                        <option value="idle">🌙 ไม่อยู่ (Idle)</option>
+                        <option value="dnd">🔴 ห้ามรบกวน (Do Not Disturb)</option>
+                        <option value="invisible">⚪ ซ่อนสถานะ (Invisible)</option>
+                    </select>
+                </div>
+                <button class="close-modal-btn" onclick="closeModal('settings-modal')">เสร็จสิ้น</button>
+            </main>
+        </div>
     </div>
 
     <script src="app.js"></script>

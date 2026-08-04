@@ -42,7 +42,7 @@
     <nav class="server-sidebar" id="server-sidebar-root">
       <div class="server-icon home-icon active" id="btn-home-tab" title="Direct Messages">
         <svg width="28" height="20" viewBox="0 0 28 20" fill="currentColor">
-          <path d="M23.0212 1.67671C21.3107 0.87968 19.5079 0.318797 17.6584 0C17.4062 0.461719 17.1195 1.0504 16.9185 1.53982C14.9546 1.2454 13.0033 1.2454 11.0667 1.53982C10.8657 1.0504 10.5658 0.461719 10.3267 0C8.4743 0.318797 6.66858 0.882582 4.95806 1.68252C1.5173 6.8809 0.584703 11.9528 1.05263 16.9535..."/>
+          <path d="M23.0212 1.67671C21.3107 0.87968 19.5079 0.318797 17.6584 0C17.4062 0.461719 17.1195 1.0504 16.9185 1.53982C14.9546 1.2454 13.0033 1.2454 11.0667 1.53982C10.8657 1.0504 10.5658 0.461719 10.3267 0C8.4743 0.318797 6.66858 0.882582 4.95806 1.68252C1.5173 6.8809 0.584703 11.9528 1.05263 16.9535"/>
         </svg>
       </div>
       <div class="sidebar-divider"></div>
@@ -52,22 +52,18 @@
     </nav>
 
     <!-- Channels & User Bar Sidebar -->
-    <aside class="channel-sidebar">
+    <aside class="channel-sidebar" id="channel-sidebar-root">
       <header class="guild-header" id="guild-header-title">
         <span class="guild-name">Discord Server</span>
         <span class="header-icon">▼</span>
       </header>
 
-      <div class="channel-list-wrapper">
+      <div class="channel-list-wrapper" id="channel-list-container">
         <div class="channel-category">
           <span class="category-title">▼ CHANNELS</span>
           <div class="channel-item active" data-channel-type="text">
             <span class="channel-hashtag">#</span>
             <span class="channel-name">general</span>
-          </div>
-          <div class="channel-item" data-channel-type="text">
-            <span class="channel-hashtag">#</span>
-            <span class="channel-name">announcements</span>
           </div>
         </div>
 
@@ -102,7 +98,7 @@
 
     <!-- Main Chat / Voice View Area -->
     <main class="main-content">
-
+      
       <!-- Top Header Bar -->
       <header class="chat-header">
         <div class="header-channel-info">
@@ -145,27 +141,15 @@
     <!-- Rightmost: Guild Member List -->
     <aside class="member-list-sidebar" id="member-list-root">
       <div class="member-group">
-        <span class="group-title">ONLINE — 2</span>
-
-        <div class="member-card" data-user-id="1">
+        <span class="group-title">ONLINE — 1</span>
+        <div class="member-card">
           <div class="avatar-container">
-            <img src="https://cdn.discordapp.com/embed/avatars/1.png" alt="User">
+            <img id="member-bot-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="User">
             <div class="status-indicator online"></div>
           </div>
           <div class="member-info">
-            <div class="member-name admin-role">Peach <span class="bot-badge">BOT</span></div>
-            <div class="member-activity">Playing Visual Studio Code</div>
-          </div>
-        </div>
-
-        <div class="member-card" data-user-id="2">
-          <div class="avatar-container">
-            <img src="https://cdn.discordapp.com/embed/avatars/2.png" alt="User">
-            <div class="status-indicator idle"></div>
-          </div>
-          <div class="member-info">
-            <div class="member-name">Developer</div>
-            <div class="member-activity">AFK</div>
+            <div class="member-name admin-role"><span id="member-bot-name">Bot</span> <span class="bot-badge">BOT</span></div>
+            <div class="member-activity">Online</div>
           </div>
         </div>
       </div>
@@ -174,37 +158,6 @@
   </div>
 
   <!-- ==================== 3. FLOATING POPUPS & MODALS ==================== -->
-
-  <!-- User Profile Popout Modal -->
-  <div id="profile-popout" class="popout-modal" style="display: none;">
-    <div class="user-profile-popout">
-      <div class="profile-banner" id="popout-banner"></div>
-      <div class="popout-header">
-        <div class="avatar-wrapper">
-          <img id="popout-avatar" class="avatar-img" src="" alt="Avatar">
-          <div id="popout-status" class="status-dot online"></div>
-        </div>
-        <div class="badge-list" id="popout-badges"></div>
-      </div>
-      <div class="popout-body">
-        <div class="user-text">
-          <div class="global-name" id="popout-display-name">Name</div>
-          <div class="username-tag" id="popout-username">@username</div>
-          <div class="pronouns" id="popout-pronouns">they/them</div>
-        </div>
-        <div class="divider"></div>
-        <div class="section-title">ABOUT ME</div>
-        <div class="bio-text" id="popout-bio">No bio provided.</div>
-        <div class="section-title" style="margin-top: 12px;">PLAYING A GAME</div>
-        <div class="activity-box">
-          <div class="activity-details">
-            <div class="activity-name" id="popout-act-name">Visual Studio Code</div>
-            <div class="activity-state" id="popout-act-state">Developing Discord Client</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Settings Modal Overlay -->
   <div id="settings-modal" class="modal-overlay" style="display: none;">
@@ -215,7 +168,6 @@
         <div class="settings-item">Profiles</div>
         <div class="settings-menu-title" style="margin-top: 16px;">APP SETTINGS</div>
         <div class="settings-item">Appearance (Theme Darkness+)</div>
-        <div class="settings-item">Voice & Video</div>
         <div class="settings-item">Language (ภาษาไทย)</div>
         <div class="divider"></div>
         <div class="settings-item logout" id="btn-logout">Log Out</div>
@@ -236,90 +188,130 @@
     </div>
   </div>
 
-  <!-- ==================== 4. SCRIPTS LOADING ==================== -->
+  <!-- ==================== 4. SCRIPTS & LOGIC ==================== -->
+  <!-- Polyfill CommonJS exports for Browser -->
   <script>
-    const { ipcRenderer } = require('electron');
-    const ServerSidebar = require('./components/ServerSidebar');
-    const ChatArea = require('./components/ChatArea');
-    const VoiceGrid = require('./components/VoiceGrid');
+    window.module = { exports: {} };
+    function exportComponent(name) {
+      window[name] = window.module.exports;
+      window.module.exports = {};
+    }
+  </script>
 
-    // UI Element References
-    const loginOverlay = document.getElementById('login-overlay');
-    const appContainer = document.getElementById('app');
-    const btnLogin = document.getElementById('btn-login');
-    const botTokenInput = document.getElementById('bot-token');
-    const loginError = document.getElementById('login-error');
+  <!-- Load Components -->
+  <script src="components/ServerSidebar.js"></script><script>exportComponent('ServerSidebar');</script>
+  <script src="components/ChannelSidebar.js"></script><script>exportComponent('ChannelSidebar');</script>
+  <script src="components/ChatArea.js"></script><script>exportComponent('ChatArea');</script>
+  <script src="components/MemberList.js"></script><script>exportComponent('MemberList');</script>
+  <script src="components/SettingsModal.js"></script><script>exportComponent('SettingsModal');</script>
+  <script src="components/VoiceGrid.js"></script><script>exportComponent('VoiceGrid');</script>
 
-    // App Navigation Elements
-    const chatStream = document.getElementById('chat-stream-container');
-    const voiceGrid = document.getElementById('voice-grid-root');
-    const btnJoinVoice = document.getElementById('btn-join-voice');
-    const settingsModal = document.getElementById('settings-modal');
-    const btnOpenSettings = document.getElementById('btn-open-settings');
-    const btnCloseSettings = document.getElementById('btn-close-settings');
+  <!-- App Main Controller Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const loginOverlay = document.getElementById('login-overlay');
+      const appContainer = document.getElementById('app');
+      const btnLogin = document.getElementById('btn-login');
+      const botTokenInput = document.getElementById('bot-token');
+      const loginError = document.getElementById('login-error');
 
-    // Login Action
-    btnLogin.addEventListener('click', () => {
-      const token = botTokenInput.value.trim();
-      if (!token) {
-        loginError.innerText = 'กรุณากรอก Bot Token';
-        return;
-      }
-      loginError.innerText = 'กำลังเชื่อมต่อเกตเวย์...';
-      ipcRenderer.send('DISCORD_LOGIN', token);
-    });
+      const chatStream = document.getElementById('chat-stream-container');
+      const voiceGrid = document.getElementById('voice-grid-root');
+      const btnJoinVoice = document.getElementById('btn-join-voice');
+      
+      const settingsModal = document.getElementById('settings-modal');
+      const btnOpenSettings = document.getElementById('btn-open-settings');
+      const btnCloseSettings = document.getElementById('btn-close-settings');
+      const btnLogout = document.getElementById('btn-logout');
 
-    // Login Success Handler
-    ipcRenderer.on('LOGIN_SUCCESS', (event, data) => {
-      loginOverlay.style.display = 'none';
-      appContainer.style.display = 'flex';
-
-      // Update User Bar
-      document.getElementById('current-user-avatar').src = data.user.avatar;
-      document.getElementById('current-user-name').innerText = data.user.username;
-      document.getElementById('current-user-tag').innerText = `#${data.user.discriminator || '0000'}`;
-
-      // Initialize Server Sidebar Component
-      const sidebar = new ServerSidebar(document.getElementById('guild-list-container'), (guildId) => {
-        console.log('Selected Guild ID:', guildId);
-      });
-      sidebar.render(data.guilds);
-
-      // Initialize Main Chat Component
-      const chat = new ChatArea(document.getElementById('chat-messages'));
-      chat.renderMessages([
-        {
-          author: { username: data.user.username, avatar: data.user.avatar, isBot: true },
-          timestamp: 'วันนี้ เวลา 12:00',
-          content: 'เชื่อมต่อ Discord Gateway และ Login สำเร็จ!',
-          embed: {
-            title: 'DISCORD CLIENT UI READY',
-            description: 'ระบบพร้อมทำงาน รองรับ Text Chat, Voice Call Grid, และ Profile Card',
-            isRainbow: true
-          }
+      // 1. WEB LOGIN HANDLER (Calls express server /api/login)
+      btnLogin.addEventListener('click', async () => {
+        const token = botTokenInput.value.trim();
+        if (!token) {
+          loginError.innerText = 'กรุณากรอก Bot Token';
+          return;
         }
-      ]);
+
+        loginError.innerText = 'กำลังตรวจสอบ Token และเชื่อมต่อ Gateway...';
+
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            loginOverlay.style.display = 'none';
+            appContainer.style.display = 'flex';
+
+            // Set Current User Bar Data
+            document.getElementById('current-user-avatar').src = data.user.avatar;
+            document.getElementById('current-user-name').innerText = data.user.username;
+            document.getElementById('current-user-tag').innerText = `#${data.user.discriminator || '0000'}`;
+            
+            document.getElementById('member-bot-avatar').src = data.user.avatar;
+            document.getElementById('member-bot-name').innerText = data.user.username;
+
+            document.getElementById('settings-avatar').src = data.user.avatar;
+            document.getElementById('settings-display-name').innerText = data.user.username;
+            document.getElementById('settings-username').innerText = `@${data.user.username}`;
+
+            // Initialize Main Chat Component
+            if (window.ChatArea) {
+              const chat = new window.ChatArea(document.getElementById('chat-messages'));
+              chat.renderMessages([
+                {
+                  author: { username: data.user.username, avatar: data.user.avatar, isBot: true },
+                  timestamp: 'วันนี้ เวลา ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                  content: 'เข้าสู่ระบบสำเร็จผ่าน Web Gateway!',
+                  embed: {
+                    title: 'DISCORD WEB CLIENT READY',
+                    description: 'ระบบพร้อมทำงาน รองรับการรันผ่าน Web Server บน Render เรียบร้อยแล้ว',
+                    isRainbow: true
+                  }
+                }
+              ]);
+            }
+          } else {
+            loginError.innerText = data.message || 'เข้าสู่ระบบไม่สำเร็จ';
+          }
+        } catch (err) {
+          loginError.innerText = 'ไม่สามารถเชื่อมต่อกับ Server ได้';
+        }
+      });
+
+      // 2. VOICE CHANNEL TOGGLE
+      if (btnJoinVoice) {
+        btnJoinVoice.addEventListener('click', () => {
+          chatStream.style.display = 'none';
+          voiceGrid.style.display = 'flex';
+          
+          if (window.VoiceGrid) {
+            const voiceComponent = new window.VoiceGrid(voiceGrid);
+            voiceComponent.render([
+              { name: document.getElementById('current-user-name').innerText, avatar: document.getElementById('current-user-avatar').src }
+            ]);
+          }
+        });
+      }
+
+      // 3. SETTINGS MODAL
+      if (btnOpenSettings) btnOpenSettings.addEventListener('click', () => settingsModal.style.display = 'flex');
+      if (btnCloseSettings) btnCloseSettings.addEventListener('click', () => settingsModal.style.display = 'none');
+      if (btnLogout) {
+        btnLogout.addEventListener('click', () => {
+          settingsModal.style.display = 'none';
+          appContainer.style.display = 'none';
+          loginOverlay.style.display = 'flex';
+          loginError.innerText = '';
+          botTokenInput.value = '';
+        });
+      }
     });
-
-    ipcRenderer.on('LOGIN_ERROR', (event, errorMsg) => {
-      loginError.innerText = `เข้าสู่ระบบไม่สำเร็จ: ${errorMsg}`;
-    });
-
-    // Voice Channel Toggle
-    btnJoinVoice.addEventListener('click', () => {
-      chatStream.style.display = 'none';
-      voiceGrid.style.display = 'flex';
-
-      const voiceComponent = new VoiceGrid(voiceGrid);
-      voiceComponent.render([
-        { name: 'Peach', avatar: 'https://cdn.discordapp.com/embed/avatars/0.png' },
-        { name: 'Developer', avatar: 'https://cdn.discordapp.com/embed/avatars/1.png' }
-      ]);
-    });
-
-    // Settings Modal Toggles
-    btnOpenSettings.addEventListener('click', () => settingsModal.style.display = 'flex');
-    btnCloseSettings.addEventListener('click', () => settingsModal.style.display = 'none');
   </script>
 </body>
 </html>

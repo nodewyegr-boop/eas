@@ -1,40 +1,44 @@
+// src/handlers/socketHandler.js
 const DiscordService = require('../services/discordService');
 
 module.exports = function registerSocketEvents(socket, client, io) {
 
-    // 1. รับ Event Login จากหน้าเว็บ
     socket.on('req_login', async ({ token }) => {
         try {
-            if (!token) {
+            if (!token || typeof token !== 'string') {
                 return socket.emit('login_error', 'กรุณากรอก Token');
             }
 
-            // สั่ง Destroy Client เก่า (ถ้ามี) แล้ว Login ใหม่ด้วย Token ที่ส่งมา
-            if (client.readyAt) {
-                await client.destroy();
+            // ทำความสะอาด Token (ตัดช่องว่าง และฟันหนูออก)
+            const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
+            // ตัดการเชื่อมต่อเดิมอย่างปลอดภัยก่อนต่อใหม่
+            try {
+                if (client.readyAt) {
+                    await client.destroy();
+                }
+            } catch (destroyErr) {
+                console.log('[Warn] Cleanup old connection:', destroyErr.message);
             }
 
-            await client.login(token.trim());
+            // สั่ง Login เข้า Discord
+            await client.login(cleanToken);
 
             socket.emit('login_success', {
-                user: DiscordService.formatUser(client.user)
+                user: client.user ? DiscordService.formatUser(client.user) : null
             });
 
         } catch (err) {
             console.error('[Login Error]', err.message);
-            socket.emit('login_error', 'Token ไม่ถูกต้อง หรือถูกระงับการใช้งาน');
+            
+            // ส่ง Error แปลไทยกลับไปหน้าเว็บ
+            let errMsg = 'Token ไม่ถูกต้อง หรือถูกระงับการใช้งาน';
+            if (err.message.includes('TOKEN_INVALID')) errMsg = 'รูปแบบ Token ไม่ถูกต้อง';
+            if (err.message.includes('DISALLOWED_INTENTS')) errMsg = 'บอทขาดการเปิด Intents ใน Discord Developer Portal';
+
+            socket.emit('login_error', errMsg);
         }
     });
 
-    // 2. ออกจากระบบ (Logout)
-    socket.on('req_logout', async () => {
-        try {
-            await client.destroy();
-            socket.emit('logout_success');
-        } catch (err) {
-            socket.emit('error_notification', 'ไม่สามารถออกจากระบบได้');
-        }
-    });
-
-    // Event อื่นๆ คงเดิม...
+    // ... Event อื่นๆ
 };

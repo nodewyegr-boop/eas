@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot-client-exact",
-  "version": "3.0.0",
-  "description": "Discord Bot Client with Exact Discord Web UI",
+  "name": "discord-full-client",
+  "version": "4.0.0",
+  "description": "Discord Desktop Web Client Replica with Voice Channel Trees, DM previews, and Profiles",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

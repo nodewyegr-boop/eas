@@ -3,56 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Discord Client</title>
+  <title>Discord Web Client Desktop</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
   <!-- LOGIN OVERLAY -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:#1e1f22; display:flex; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:#313338; padding:32px; border-radius:8px; width:400px; text-align:center;">
-      <h2 style="color:#fff; margin-bottom:8px;">เข้าสู่ระบบ Discord Bot</h2>
-      <p style="color:#949ba4; font-size:14px; margin-bottom:20px;">ใส่ Bot Token เพื่อดึงข้อมูลเซิร์ฟเวอร์จริง</p>
-      <input type="password" id="bot-token" placeholder="Bot Token" style="width:100%; padding:10px; background:#1e1f22; border:1px solid #2b2d31; border-radius:4px; color:#fff; margin-bottom:16px; outline:none;" />
-      <button id="btn-login" style="width:100%; padding:10px; background:#5865f2; color:#fff; border:none; border-radius:4px; font-weight:600; cursor:pointer;">Connect Gateway</button>
-      <div id="login-error" style="color:#f23f43; font-size:13px; margin-top:12px;"></div>
+  <div id="login-overlay" class="modal-overlay" style="display: flex;">
+    <div class="modal-card" style="text-align: center;">
+      <h2 style="margin-bottom: 8px;">Discord Web Gateway</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">กรอก Bot Token หรือ User Token เพื่อเข้าใช้งาน</p>
+      <input type="password" id="bot-token" placeholder="Token" style="width: 100%; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--bg-secondary); border-radius: 4px; color: #fff; margin-bottom: 16px; outline: none;" />
+      <button id="btn-login" style="width: 100%; padding: 12px; background: var(--brand-color); color: #fff; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Connect</button>
+      <div id="login-error" style="color: var(--status-dnd); font-size: 13px; margin-top: 12px;"></div>
     </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profile-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px;">จัดการโปรไฟล์และสถานะ</h3>
+      <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">สถานะ</label>
+      <select id="status-select" style="width:100%; padding:8px; background:var(--bg-tertiary); color:#fff; border:none; border-radius:4px; margin-bottom:16px;">
+        <option value="online">Online (ออนไลน์)</option>
+        <option value="idle">Idle (ไม่อยู่)</option>
+        <option value="dnd">Do Not Disturb (ห้ามรบกวน)</option>
+      </select>
+      <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Custom Status</label>
+      <input type="text" id="custom-status-text" placeholder="กำลังเล่นเกม..." style="width:100%; padding:8px; background:var(--bg-tertiary); border:none; border-radius:4px; color:#fff; margin-bottom:20px;" />
+      <div style="display:flex; justify-end; gap:8px;">
+        <button id="btn-save-profile" style="padding:8px 16px; background:var(--brand-color); color:#fff; border:none; border-radius:4px; cursor:pointer;">บันทึก</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="padding:8px 16px; background:transparent; color:#fff; border:none; cursor:pointer;">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT MENU -->
+  <div id="context-menu" class="context-menu">
+    <div class="context-menu-item" id="cm-copy">คัดลอกข้อความ</div>
+    <div class="context-menu-item danger" id="cm-delete">ลบข้อความ</div>
   </div>
 
   <!-- MAIN APP -->
   <div id="app" class="app-container" style="display: none;">
 
-    <!-- 1. SERVER SIDEBAR -->
+    <!-- 1. SERVER SIDEBAR WITH SCROLL & DM -->
     <nav class="server-sidebar">
-      <div class="server-icon-wrapper active">
+      <div class="server-icon-wrapper active" id="btn-dm-home">
         <div class="pill-indicator"></div>
         <div class="server-icon" title="Direct Messages">
           <svg width="28" height="20" viewBox="0 0 28 20" fill="currentColor"><path d="M23.0212 1.67671C21.3107 0.87968 19.5079 0.318797 17.6584 0C17.4062 0.461719 17.1195 1.0504 16.9185 1.53982C14.9546 1.2454 13.0033 1.2454 11.0667 1.53982C10.8657 1.0504 10.5658 0.461719 10.3267 0C8.4743 0.318797 6.66858 0.882582 4.95806 1.68252C1.5173 6.8809 0.584703 11.9528 1.05263 16.9535"/></svg>
         </div>
       </div>
       <div class="sidebar-divider"></div>
-      <div id="guild-list-container" style="display:flex; flex-direction:column; gap:8px; width:100%;"></div>
+      <div class="server-scroll-area" id="guild-list-container"></div>
     </nav>
 
     <!-- 2. CHANNEL SIDEBAR -->
     <aside class="channel-sidebar">
-      <header class="guild-header">
-        <span id="guild-title-name">เลือกเซิร์ฟเวอร์</span>
+      <header class="guild-header" id="guild-header-btn">
+        <span id="guild-title-name">Direct Messages</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
       </header>
 
-      <div class="channel-list-wrapper" id="channel-list-container">
-        <!-- Dynamic Channels Render Here -->
-      </div>
+      <div class="channel-list-wrapper" id="channel-list-container"></div>
 
       <!-- USER PANEL -->
       <footer class="user-panel">
-        <div class="user-info">
+        <div class="user-info" id="user-panel-info">
           <div class="avatar-container">
             <img id="user-avatar-img" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar">
-            <div class="status-indicator"></div>
+            <div class="status-indicator online" id="user-status-dot"></div>
           </div>
-          <div style="overflow:hidden;">
+          <div>
             <div id="user-display-name" class="username">Bot</div>
             <div id="user-display-tag" class="user-tag">#0000</div>
           </div>
@@ -60,7 +84,7 @@
         <div class="user-controls">
           <button class="icon-btn" title="Mute"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg></button>
           <button class="icon-btn" title="Deafen"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 00-9 9v7c0 1.1.9 2 2 2h3a1 1 0 001-1v-6a1 1 0 00-1-1H5v-1a7 7 0 0114 0v1h-3a1 1 0 00-1 1v6a1 1 0 001 1h3a2 2 0 002-2v-7a9 9 0 00-9-9z"/></svg></button>
-          <button class="icon-btn" title="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+          <button class="icon-btn" id="btn-open-settings" title="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
         </div>
       </footer>
     </aside>
@@ -70,38 +94,33 @@
       <header class="chat-header">
         <div class="header-left">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="#949ba4"><path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28401 17 2.04844 16.7189 2.10281 16.4126L2.36948 14.9126C2.40933 14.6883 2.60423 14.5246 2.83151 14.5246H5.56001L6.4489 9.5H3.044L2.7329 2.49733 2.2212 2.60561L2.87228 0.414922H5.56001L6.4489 9.5H3.044Z"/></svg>
-          <h3 id="current-channel-title">select-a-channel</h3>
+          <h3 id="current-channel-title">general</h3>
         </div>
-        
-        <!-- HEADER ICON TOOLBAR (กระดิ่ง หมุด รายชื่อสมาชิก) -->
         <div class="header-right">
           <svg class="header-icon" title="Notification Settings" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 002.818-2H9.182A2.98 2.98 0 0012 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.63 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z"/></svg>
           <svg class="header-icon" title="Pinned Messages" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-          <svg class="header-icon" title="Member List Toggle" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-          <div class="search-bar"><input type="text" placeholder="Search" /></div>
-          <svg class="header-icon" title="Inbox" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5v-3h3.56c.69 1.19 1.97 2 3.44 2s2.75-.81 3.44-2H19v3zm0-5h-4.18c-.41 1.16-1.51 2-2.82 2s-2.41-.84-2.82-2H5V5h14v9z"/></svg>
+          <svg class="header-icon" id="btn-toggle-members" title="Member List Toggle" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </div>
       </header>
 
       <div class="messages-container" id="chat-messages"></div>
 
+      <!-- INPUT + FILE UPLOADER -->
       <div class="chat-input-container">
         <div class="chat-input-box">
-          <input type="text" id="chat-input" placeholder="เลือกช่องทางเพื่อส่งข้อความ" />
+          <input type="file" id="file-input" multiple style="display:none;" />
+          <button class="upload-btn" id="btn-upload" title="Send Image/File">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+          </button>
+          <input type="text" id="chat-input" placeholder="ส่งข้อความ..." />
         </div>
       </div>
     </main>
 
     <!-- 4. MEMBER LIST SIDEBAR -->
-    <aside class="member-sidebar">
-      <div class="member-group-title">ONLINE — 1</div>
-      <div class="member-item">
-        <img id="member-bot-img" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Bot">
-        <div class="member-name">
-          <span id="member-bot-username">Bot</span>
-          <span class="bot-badge">BOT</span>
-        </div>
-      </div>
+    <aside class="member-sidebar" id="member-sidebar">
+      <div class="member-group-title" id="member-count-title">MEMBERS</div>
+      <div id="member-list-container"></div>
     </aside>
 
   </div>

@@ -1,0 +1,15 @@
+{
+  "name": "discord-bot-web-client",
+  "version": "1.0.0",
+  "description": "Discord Bot Client Web UI for Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "discord.js": "^14.14.1",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4"
+  }
+}

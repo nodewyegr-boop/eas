@@ -1,18 +1,7 @@
-# Python Bytecode & Cache
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-ENV/
-
-# Configuration & Secrets
+# ป้องกันไฟล์ตั้งค่าที่มี Token จริงหลุดขึ้น GitHub
 config/environment.env
 .env
+*.env
 
-# IDE Settings
-.vscode/
-.idea/
-
-# Logs
-*.log
+# ยกเว้นไฟล์ตัวอย่างให้ดันขึ้น GitHub ได้
+!config/environment.env.example

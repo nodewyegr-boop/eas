@@ -1,0 +1,16 @@
+{
+  "colors": {
+    "blurple": "0x5865F2",
+    "green": "0x57F287",
+    "yellow": "0xFEE75C",
+    "red": "0xED4245",
+    "fuchsia": "0xEB459E",
+    "dark_neutral": "0x2B2D31",
+    "darker_neutral": "0x1E1F22"
+  },
+  "branding": {
+    "system_name": "Discord Enterprise System",
+    "official_footer_text": "Discord Protocol • Official Interface",
+    "default_avatar_url": "https://cdn.discordapp.com/embed/avatars/0.png"
+  }
+}

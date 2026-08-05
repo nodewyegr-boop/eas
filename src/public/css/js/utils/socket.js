@@ -2,7 +2,7 @@ const socket = io();
 window.socket = socket;
 
 socket.on('connect', () => {
-    console.log('[Socket] Connected to server');
+    console.log('[Socket] Connected to server, ID:', socket.id);
     const savedToken = localStorage.getItem('discord_token');
     if (savedToken && window.UI) {
         window.UI.showLoginLoading();

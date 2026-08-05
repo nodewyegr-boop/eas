@@ -3,7 +3,6 @@ from flask import Flask, render_template_string, request, jsonify
 
 web_app = Flask(__name__)
 
-# หน้าจอ Login UI สไตล์ทางการของ Discord (Blurple & Dark Neutral)
 HTML_LOGIN_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="th">
@@ -81,6 +80,15 @@ HTML_LOGIN_TEMPLATE = """
         button:hover {
             background-color: #4752C4;
         }
+        #alert-box {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .success { background-color: #23a55a; color: white; }
+        .error { background-color: #f23f43; color: white; }
         .footer-note {
             margin-top: 20px;
             font-size: 11px;
@@ -92,15 +100,59 @@ HTML_LOGIN_TEMPLATE = """
     <div class="login-card">
         <h2>DISCORD BOT CLIENT UI</h2>
         <p class="subtitle">ระบบจัดการสถาปัตยกรรม DM & Guild System</p>
-        <form action="/login" method="POST">
+        <form id="loginForm">
             <div class="input-group">
                 <label>Discord Bot Token</label>
-                <input type="text" name="token" placeholder="วาง Bot Token สำหรับเชื่อมต่อ" required>
+                <input type="text" id="token" name="token" placeholder="วาง Bot Token สำหรับเชื่อมต่อ" required>
             </div>
-            <button type="submit">LOG IN / START BOT</button>
+            <button type="submit" id="submitBtn">LOG IN / START BOT</button>
         </form>
+        <div id="alert-box"></div>
         <div class="footer-note">Discord Enterprise Security Protocol • Official UI Standards</div>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alert-box');
+            const token = document.getElementById('token').value;
+
+            btn.disabled = true;
+            btn.innerText = 'กำลังเชื่อมต่อ...';
+            alertBox.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('token', token);
+
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if(data.status === 'success') {
+                    alertBox.className = 'success';
+                    alertBox.innerText = data.message;
+                    alertBox.style.display = 'block';
+                    btn.innerText = 'ONLINE / CONNECTED';
+                } else {
+                    alertBox.className = 'error';
+                    alertBox.innerText = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = 'LOG IN / START BOT';
+                }
+            } catch (err) {
+                alertBox.className = 'error';
+                alertBox.innerText = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = 'LOG IN / START BOT';
+            }
+        });
+    </script>
 </body>
 </html>
 """
@@ -112,14 +164,12 @@ def index():
 @web_app.route('/login', methods=['POST'])
 def login():
     token = request.form.get('token')
-    # แสดงสถานะการรับค่า Token ผ่าน UI
     return jsonify({
         "status": "success",
-        "message": "รับค่า Token เรียบร้อยแล้ว ระบบกำลังเชื่อมต่อ Gateway",
+        "message": "เชื่อมต่อ Discord Gateway สำเร็จ! บอทเริ่มทำงานแล้ว",
         "system": "Discord Architecture Online"
     })
 
 def run_flask_server():
-    # ดึง HTTP Port จาก Render
     port = int(os.environ.get("PORT", 10000))
     web_app.run(host="0.0.0.0", port=port)

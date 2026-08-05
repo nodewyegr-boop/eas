@@ -1,6 +1,6 @@
 import discord
-from src.modules.dm_system.dm_controller import DirectMessageController
-from src.modules.guild_system.guild_controller import GuildController
+from src.modules.dm_system.controllers.dm_controller import DirectMessageController
+from src.modules.guild_system.controllers.guild_controller import GuildController
 
 class EventDispatcher:
     """แยกการทำงานระหว่าง DM และ Guild ตั้งแต่ระดับ Event"""

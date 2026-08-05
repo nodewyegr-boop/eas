@@ -1,3 +1,4 @@
+
 window.UI = {
     showLoginLoading() {
         const errorDiv = document.getElementById('login-error');
@@ -62,7 +63,7 @@ window.UI = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
@@ -81,8 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.socket) {
                 window.socket.emit('req_login', { token: token });
             } else {
-                window.UI.showLoginError('ระบบ Socket ยังไม่พร้อม ลองรีเฟรชหน้าเว็บ');
+                window.UI.showLoginError('ระบบ Socket ยังไม่พร้อม กรุณารีเฟรชหน้าเว็บ');
             }
         });
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}

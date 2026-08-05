@@ -15,9 +15,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'src/public')));
 
 io.on('connection', (socket) => {
-    console.log('[Socket] Client connected:', socket.id);
+    console.log('[Socket] Connected:', socket.id);
 
-    // 1. Bot Login Handler
     socket.on('req_login', async ({ token }) => {
         if (!token) return socket.emit('login_error', 'กรุณากรอก Bot Token');
 
@@ -40,7 +39,7 @@ io.on('connection', (socket) => {
         socket.discordClient = client;
 
         client.once('ready', () => {
-            console.log(`[Bot Ready] Logged in as: ${client.user.tag}`);
+            console.log(`[Bot Connected] ${client.user.tag}`);
             socket.emit('login_success', {
                 user: {
                     id: client.user.id,
@@ -54,7 +53,7 @@ io.on('connection', (socket) => {
         try {
             await client.login(cleanToken);
         } catch (err) {
-            console.error('[Bot Login Error]', err.message);
+            console.error('[Login Error]', err.message);
 
             if (socket.discordClient) {
                 try { await socket.discordClient.destroy(); } catch (e) {}
@@ -63,7 +62,7 @@ io.on('connection', (socket) => {
 
             let msg = 'Bot Token ไม่ถูกต้อง';
             if (err.message.includes('USED_DISALLOWED_INTENTS')) {
-                msg = 'กรุณาเปิด MESSAGE CONTENT INTENT ใน Discord Developer Portal';
+                msg = 'เปิด MESSAGE CONTENT INTENT ใน Discord Developer Portal ก่อนใช้งาน';
             } else if (err.message.includes('TOKEN_INVALID')) {
                 msg = 'รูปแบบ Bot Token ไม่ถูกต้อง';
             }
@@ -72,7 +71,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 2. Fetch Initial Data
     socket.on('req_initial_data', async () => {
         const client = socket.discordClient;
         if (!client || !client.user) return;
@@ -81,7 +79,7 @@ io.on('connection', (socket) => {
             const guilds = client.guilds.cache.map(g => ({
                 id: g.id,
                 name: g.name,
-                icon: g.iconURL() || 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png'
+                icon: g.iconURL() || 'https://cdn.discordapp.com/embed/avatars/0.png'
             }));
 
             socket.emit('res_initial_data', {
@@ -94,11 +92,10 @@ io.on('connection', (socket) => {
                 guilds: guilds
             });
         } catch (err) {
-            socket.emit('error_notification', err.message);
+            socket.emit('login_error', err.message);
         }
     });
 
-    // 3. Logout & Disconnect
     socket.on('req_logout', async () => {
         if (socket.discordClient) {
             try { await socket.discordClient.destroy(); } catch (e) {}

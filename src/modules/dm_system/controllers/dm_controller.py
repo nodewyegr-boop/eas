@@ -1,6 +1,6 @@
 import discord
 from src.modules.dm_system.services.dm_service import DirectMessageService
-from src.ui.layouts.base_embed import OfficialEmbedBuilder
+from src.ui.dm_templates.welcome_dm import WelcomeDMTemplate
 
 class DirectMessageController:
     """ตัวควบคุมการไหลของข้อมูลในระบบ DM"""
@@ -11,12 +11,12 @@ class DirectMessageController:
     async def handle_incoming_dm(self, message: discord.Message):
         parsed_data = self.service.parse_dm_payload(message)
         
-        embed = OfficialEmbedBuilder.create_base_embed(
-            title="Direct Messaging System",
-            description=f"ข้อความ: {parsed_data['content']}",
-            color_key="blurple"
+        # ดึง UI Template สไตล์ทางการฝั่ง DM มาใช้งาน
+        embed = WelcomeDMTemplate.build(message.author)
+        embed.add_field(
+            name="Message Received",
+            value=f"`{parsed_data['content']}`",
+            inline=False
         )
-        embed.add_field(name="Sender ID", value=f"`{parsed_data['sender_id']}`", inline=True)
-        embed.add_field(name="Status", value="Processed via DM Root", inline=True)
 
         await message.channel.send(embed=embed)

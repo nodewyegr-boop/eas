@@ -1,6 +1,7 @@
+
 import discord
 from src.modules.guild_system.services.guild_service import GuildService
-from src.ui.layouts.base_embed import OfficialEmbedBuilder
+from src.ui.guild_templates.announcement_embed import OfficialGuildAnnouncement
 
 class GuildController:
     """ตัวควบคุมการไหลของข้อมูลในระบบ Server"""
@@ -11,12 +12,11 @@ class GuildController:
     async def handle_guild_event(self, message: discord.Message):
         guild_info = self.service.get_guild_metadata(message.guild)
         
-        embed = OfficialEmbedBuilder.create_base_embed(
-            title=f"Guild Administration • {guild_info['name']}",
-            description="ประมวลผลคำสั่งภายในเซิร์ฟเวอร์ตามมาตฐานความปลอดภัย",
-            color_key="dark_neutral"
+        # ดึง UI Template สไตล์ทางการฝั่ง Guild มาใช้งาน
+        embed = OfficialGuildAnnouncement.build(
+            title=f"Server Protocol Processed ({guild_info['name']})",
+            content=f"ข้อความสแกนสำเร็จจากช่อง #{message.channel.name}",
+            author=message.author
         )
-        embed.add_field(name="Channel", value=f"#{message.channel.name}", inline=True)
-        embed.add_field(name="Member Count", value=str(guild_info['member_count']), inline=True)
 
         await message.channel.send(embed=embed)

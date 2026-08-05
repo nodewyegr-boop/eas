@@ -3,10 +3,8 @@ import discord
 from pathlib import Path
 
 class OfficialEmbedBuilder:
-    """ตัวสร้าง Embed มาตรฐานทางการของ Discord"""
-
     _theme_cache = None
-    # อ้างอิง Path ไปยัง config/discord_theme.json จากตำแหน่งไฟล์นี้โดยตรง
+    # หาตำแหน่งไฟล์ config/discord_theme.json จากตำแหน่งจริงของไฟล์นี้
     _CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "discord_theme.json"
 
     @classmethod

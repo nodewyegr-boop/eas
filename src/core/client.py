@@ -10,7 +10,7 @@ class OfficialDiscordClient(discord.Client):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
-        intents.direct_messages = True
+        intents.dm_messages = True
         intents.guild_messages = True
         intents.members = True
 

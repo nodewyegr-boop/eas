@@ -1,17 +1,16 @@
 import asyncio
 import os
-from dotenv import load_dotenv
 from src.core.client import OfficialDiscordClient
 from src.utils.logger import AppLogger
-
-load_dotenv("config/environment.env")
 
 logger = AppLogger.get_logger("Main")
 
 async def main():
+    # ดึงค่า DISCORD_BOT_TOKEN จาก GitHub Secrets หรือ Environment Variable ของเครื่องโดยตรง
     token = os.getenv("DISCORD_BOT_TOKEN")
+    
     if not token:
-        logger.error("ไม่พบ DISCORD_BOT_TOKEN ในไฟล์ environment.env")
+        logger.critical("ไม่พบ DISCORD_BOT_TOKEN ใน Environment Variables! โปรดตั้งค่าใน GitHub Secrets หรือในระบบก่อนรัน")
         return
 
     client = OfficialDiscordClient()

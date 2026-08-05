@@ -1,15 +1,18 @@
 import json
 import discord
+from pathlib import Path
 
 class OfficialEmbedBuilder:
     """ตัวสร้าง Embed มาตรฐานทางการของ Discord"""
 
     _theme_cache = None
+    # อ้างอิง Path ไปยัง config/discord_theme.json จากตำแหน่งไฟล์นี้โดยตรง
+    _CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "discord_theme.json"
 
     @classmethod
     def _load_theme(cls):
         if cls._theme_cache is None:
-            with open("config/discord_theme.json", "r", encoding="utf-8") as f:
+            with open(cls._CONFIG_PATH, "r", encoding="utf-8") as f:
                 cls._theme_cache = json.load(f)
         return cls._theme_cache
 
